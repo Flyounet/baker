@@ -389,20 +389,20 @@ post_bake() {
 		[[ -z "${POST_NEXT:=}" ]] && POST_NEXT='index.md'
 		POST_NEXT="${POST_NEXT%*.md}.html"
 		# look for the tags
-                if [ ${__c:=0} -eq 0 ]; then # When implemented the -c will avoid tags generation
-                        local _tag=''; TAGSLIST=''
-                        tags="$(header tags < "$post")"
-                        if [ ! -z "${tags}" ]; then
-                                while read _tag; do
-                                        TAGSLIST="${TAGSLIST}${TAGS_LINK//==tagNameSlugged==/$(slug <<< "${_tag}")}"
-                                        TAGSLIST="${TAGSLIST//==tagName==/${_tag}}"
-                                        _allTags="${_allTags//${_tag},/}${_tag},"
-                                done <<< "$(echo -e "${tags//,/\\n}")"
-                        fi
-                else
-                        unset TAGSLIST
-                        unset tags
-                fi
+		if [ ${__c:=0} -eq 0 ]; then # When implemented the -c will avoid tags generation
+			local _tag=''; TAGSLIST=''
+			tags="$(header tags < "$post")"
+			if [ ! -z "${tags}" ]; then
+				while read _tag; do
+					TAGSLIST="${TAGSLIST}${TAGS_LINK//==tagNameSlugged==/$(slug <<< "${_tag}")}"
+					TAGSLIST="${TAGSLIST//==tagName==/${_tag}}"
+					_allTags="${_allTags//${_tag},/}${_tag},"
+				done <<< "$(echo -e "${tags//,/\\n}")"
+			fi
+		else
+			unset TAGSLIST
+			unset tags
+		fi
 		# Render the post
 		echo "$idx - $idx_next - $id [Prev:${POST_PREV}][Next:${POST_NEXT}] [Tags:${tags}]"
 		render_file "$post" > "$OUTPUT_DIR/$id.html" &
@@ -415,6 +415,32 @@ post_bake() {
 	echo "Rendering Index..." >&2
 	render_file "$LAYOUT_DIR/index.md" > "$OUTPUT_DIR/index.html" &
 	wait
+	# Generate the indexes for each tags
+	if [ ${__c:=0} -eq 0 ]; then
+		echo "Rendering Index for categories..." >&2
+		while read _tagIdx; do
+			# It's really important to unset all posts variables
+			while read a; do unset "${a}"; done <<< "$(compgen  -v | grep -E "^posts_[0-9]")"
+			idx=0
+			id_all=0
+			for post in "${posts[@]}"; do
+				id="$(basename "$post" .md)"
+				if [ "$(header draft < "$post")" != false ]; then continue; fi
+				tags="$(header tags < "$post")"
+				if [ ! -z "${tags}" ]; then
+					while read _tag; do
+						if [ "${_tag}" = "${_tagIdx}" ] ; then
+							declare "posts_${idx}_id"="$id"
+							export_headers "$post" "posts_${idx}_"
+							(( idx++ ))
+						fi
+					done <<< "$(echo -e "${tags//,/\\n}")"
+				fi
+			done
+			render_file "$LAYOUT_DIR/index.md" > "$OUTPUT_DIR/index_$(slug <<< "${_tagIdx}").html" &
+			wait
+		done <<< "$(echo -e "${_allTags//,/\\n}")"
+	fi
 }
 
 #
