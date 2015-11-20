@@ -23,8 +23,7 @@
 	<article>
 		{{ content }}
 	</article>
-
-@if !category 
+@if category
 	<aside>
 		<ul class="cats">
 			{{ CATLIST }}

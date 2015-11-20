@@ -158,6 +158,8 @@ render_if() {
 	local lines
 	local line
 	readarray -t lines
+	# The following regexp should be a little amended to allow more than one space|tab
+	# between the @if and id (AND after)
 	[[ "${lines[0]}" =~ ^@if\ ('!')?($VAR_ID)$ ]] || return 1
 
 	# skip render on undefined_var or !defined_var
@@ -166,7 +168,6 @@ render_if() {
 	else
 		[[ "${BASH_REMATCH[1]}" == '!' ]] || return 0
 	fi
-
 	# recursively render the inner block
 	for line in "${lines[@]:1:${#lines[@]}-2}"; do
 		echo "$line"
@@ -355,6 +356,7 @@ post_bake() {
 	echo "Rendering Posts..." >&2
 	idx=0
 	id_all=0
+	_allCats=''
 	time for post in "${posts[@]}"; do
 		idx_prev=1;idx_next=1
 		id="$(basename "$post" .md)"
@@ -387,21 +389,15 @@ post_bake() {
 		[[ -z "${POST_NEXT:=}" ]] && POST_NEXT='index.md'
 		POST_NEXT="${POST_NEXT%*.md}.html"
 		# look for the categories
-                if [ ${__c:=0} -eq 0 ]; then
-                        local category=''; local _cat=''; local CATLIST=''; local CATLIS=''
-set +xv
+                if [ ${__c:=0} -eq 0 ]; then # When implemented the -c will avoid categories generation
+                        category=''; local _cat=''; CATLIST=''; CATLIS=''
                         category="$(header category < "$post")"
-set -xv
                         if [ ! -z "${category}" ]; then
                                 while read _cat; do
-#                                       CATLIST="${CATLIST}<li><a href='$(slug <<< "${_cat}")/index.html' title='jump to category'><i class='fa fa-tag'></i>&nbsp;${_cat}</a></li>"
-                                        # Faudrait voir à avoir une variable avec remplacement des slugCat et Cat
-#                                       CATLIST="${CATLIST}<li><a href='index.html' title='jump to category (not finished)'><i class='fa fa-tag'></i>&nbsp;${_cat}</a></li>"
                                         local _blabla="${CATEGORY_LINK//==catNameSlugged==/$(slug <<< "${_cat}")}"
                                         _blabla="${_blabla//==catName==/${_cat}}"
                                         CATLIST="${CATLIST}${_blabla}"
                                         _allCats="${_allCats//${_cat},/}${_cat},"
-# on fait un sumup de toutes catg genre un array ou hashmap (à voir sur un bench speed)
                                 done <<< "$(echo -e "${category//,/\\n}")"
                         fi
                 else
@@ -409,7 +405,7 @@ set -xv
                         unset category
                 fi
 		# Render the post
-		echo "$idx - $idx_next - $id [Prev:${POST_PREV}][Next:${POST_NEXT}]"
+		echo "$idx - $idx_next - $id [Prev:${POST_PREV}][Next:${POST_NEXT}] [Cats:${category}]"
 		render_file "$post" > "$OUTPUT_DIR/$id.html" &
 		declare "posts_${idx}_id"="$id"
 		export_headers "$post" "posts_${idx}_"
