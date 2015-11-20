@@ -330,24 +330,8 @@ post_post() {
 	[[ "$EDITOR" ]] && $EDITOR "$post_file"
 }
 
-#
-# usage
-#
-usage() {
-	cat <<-EOF
-	baker
-	  post [title]  draft a post
-	  bake          ship all posts
-	  list		list all posts with state
-	  toggle [post] toggle the draft status of a post
-	EOF
-	exit 1
-}
-
-(( $# == 0 )) && usage
-
-case "$1" in
-bake)
+# post_bake it's where the magic start
+post_bake() {
 	rm -rf "$DRAFT_DIR"
 	mkdir -p "$DRAFT_DIR"
 	rm -rf "$OUTPUT_DIR"
@@ -405,6 +389,27 @@ bake)
 	echo "Rendering Index..." >&2
 	render_file "$LAYOUT_DIR/index.md" > "$OUTPUT_DIR/index.html" &
 	wait
+}
+
+#
+# usage
+#
+usage() {
+	cat <<-EOF
+	baker
+	  post [title]  draft a post
+	  bake          ship all posts
+	  list		list all posts with state
+	  toggle [post] toggle the draft status of a post
+	EOF
+	exit 1
+}
+
+(( $# == 0 )) && usage
+
+case "$1" in
+bake)
+	post_bake
 	;;
 post)
 	post_post "${@:2}"
