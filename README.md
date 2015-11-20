@@ -13,7 +13,7 @@
 
 1. Give it a title: `./baker post I love pizza so much!` This command will create a markdown file that has the slug `i-love-pizza-so-much` in the `post` directory. If the `$EDITOR` environment variable is set, it will open up the post markdown file with the editor.
 
-2. Change `draft` from `true` to `false` to publish the post.
+2. Change `draft` from `true` to `false` to publish the post (or use the `./baker toggle id`).
 
 3. Bake all posts: `./baker bake`
 

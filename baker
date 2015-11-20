@@ -270,30 +270,72 @@ render_file() {
 	echo "$content"
 }
 
-#
-# usage
-#
-usage() {
-	cat <<-EOF
-	baker
-	  post [title]  draft a post
-	  bake          ship all posts
-	  list		list all posts with state
-	  toggle [post] toggle the draft status of a post
-	EOF
-	exit 1
+# post_toggle toggles the status of a post (either use ID or post name)
+post_toggle() {
+	local _fname=''
+	if [ -z "${1:-}" ]; then
+		usage
+	elif [ -z "${1//[0-9]/}" ]; then
+		readarray -t posts < <(find "$POST_DIR" -name '*.md' | sort -r)
+		if [ ${1} -lt ${#posts[@]} ]; then
+			_fname="${posts[${1}]}"
+		fi
+	elif [ -f "${POST_DIR}/${1}" -o -f "${POST_DIR}/${1}.md" ]; then
+		_fname="${POST_DIR}/${1//\.md/}.md"
+	fi
+	if [ -z "${_fname}" ]; then
+		echo "This post doesn't exist"
+		exit 1
+	fi
+	if [ "$(header draft < "${_fname}")" == 'false' ]; then
+		sed -i -e 's;^[[:space:]]*draft:[[:space:]]*false[[:space:]]*$;draft: true;g'  "${_fname}"
+	else
+		sed -i -e 's;^[[:space:]]*draft:[[:space:]]*.*[[:space:]]*$;draft: false;g'  "${_fname}"
+	fi
 }
 
-(( $# == 0 )) && usage
+# post_list list the id title and status of posts
+post_list() {
+	local idx=0
+	readarray -t posts < <(find "$POST_DIR" -name '*.md' | sort -r)
+	(
+		echo "id title status"
+		for post in "${posts[@]}"; do
+			id="$(basename "$post" .md)"
+			# skip drafts
+			if [ "$(header draft < "$post")" == 'false' ]; then
+				echo "${idx} $id [Published]"
+			else
+				echo "${idx} $id [Draft]"
+			fi
+			((idx++))
+		done
+	) | column -t
+}
 
-config
-readonly POST_DIR; readonly OUTPUT_DIR; readonly DRAFT_DIR; readonly LAYOUT_DIR; readonly PUBLIC_DIR
-readonly SITE_NAME; readonly SITE_DESC
-readonly AUTHOR_NAME; readonly AUTHOR_DESC; readonly AUTHOR_EMAIL; readonly AUTHOR_EMAIL_HASH;
-readonly AUTHOR_TWITTER; readonly AUTHOR_GITHUB; readonly DISQUS
+# post_post creates a post (in the POST_DIR) with the minimum information 
+post_post() {
+	readonly title="${@}"
+	[[ "$title" ]] || usage
 
-case "$1" in
-bake)
+	mkdir -p "$POST_DIR" || ( echo "Can't create '$POST_DIR'" >&2; exit 1 )
+	readonly post_file="$POST_DIR/$(date +%Y-%m-%d)-$(slug <<< "$title").md"
+	cat > "$post_file" <<-EOF
+	---
+	title: $title
+	date: $(date -u +%FT%TZ)
+	layout: post
+	draft: true
+	summary:
+	---
+	EOF
+
+	echo "$post_file"
+	[[ "$EDITOR" ]] && $EDITOR "$post_file"
+}
+
+# post_bake it's where the magic start
+post_bake() {
 	rm -rf "$DRAFT_DIR"
 	mkdir -p "$DRAFT_DIR"
 	rm -rf "$OUTPUT_DIR"
@@ -351,64 +393,42 @@ bake)
 	echo "Rendering Index..." >&2
 	render_file "$LAYOUT_DIR/index.md" > "$OUTPUT_DIR/index.html" &
 	wait
+}
+
+#
+# usage
+#
+usage() {
+	cat <<-EOF
+	baker
+	  post [title]  draft a post
+	  bake          ship all posts
+	  list		list all posts with state
+	  toggle [post] toggle the draft status of a post
+	EOF
+	exit 1
+}
+
+(( $# == 0 )) && usage
+
+config
+readonly POST_DIR; readonly OUTPUT_DIR; readonly DRAFT_DIR; readonly LAYOUT_DIR; readonly PUBLIC_DIR
+readonly SITE_NAME; readonly SITE_DESC
+readonly AUTHOR_NAME; readonly AUTHOR_DESC; readonly AUTHOR_EMAIL; readonly AUTHOR_EMAIL_HASH;
+readonly AUTHOR_TWITTER; readonly AUTHOR_GITHUB; readonly DISQUS
+
+case "$1" in
+bake)
+	post_bake
 	;;
 post)
-	readonly title="${@:2}"
-	[[ "$title" ]] || usage
-
-	mkdir -p "$POST_DIR"
-	readonly post_file="$POST_DIR/$(date +%Y-%m-%d)-$(slug <<< "$title").md"
-	cat > "$post_file" <<-EOF
-	---
-	title: $title
-	date: $(date -u +%FT%TZ)
-	layout: post
-	draft: true
-	summary:
-	---
-	EOF
-
-	echo "$post_file"
-	[[ "$EDITOR" ]] && $EDITOR "$post_file"
+	post_post "${@:2}"
 	;;
 list)
-	idx=0
-	readarray -t posts < <(find "$POST_DIR" -name '*.md' | sort -r)
-	(
-		echo "id title status"
-		for post in "${posts[@]}"; do
-			id="$(basename "$post" .md)"
-			# skip drafts
-			if [ "$(header draft < "$post")" == 'false' ]; then
-				echo "${idx} $id [Published]"
-			else
-				echo "${idx} $id [Draft]"
-			fi
-			((idx++))
-		done
-	) | column -t
+	post_list
 	;;
 toggle)
-	_fname=''
-	readarray -t posts < <(find "$POST_DIR" -name '*.md' | sort -r)
-	if [ -z "${2:-}" ]; then
-		usage
-	elif [ -z "${2//[0-9]/}" ]; then
-		if [ ${2} -lt ${#posts[@]} ]; then
-			_fname="${posts[${2}]}"
-		fi
-	elif [ -f "${POST_DIR}/${2}" -o -f "${POST_DIR}/${2}.md" ]; then
-		_fname="${POST_DIR}/${2//\.md/}.md"
-	fi
-	if [ -z "${_fname}" ]; then
-		echo "This post doesn't exist"
-		exit 1
-	fi
-	if [ "$(header draft < "${_fname}")" == 'false' ]; then
-		sed -i -e 's;^[[:space:]]*draft:[[:space:]]*false[[:space:]]*$;draft: true;g'  "${_fname}"
-	else
-		sed -i -e 's;^[[:space:]]*draft:[[:space:]]*.*[[:space:]]*$;draft: false;g'  "${_fname}"
-	fi
+	post_toggle "${@:2}"
 	;;
 *)
 	usage
