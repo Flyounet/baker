@@ -34,6 +34,10 @@ config() {
 	export AUTHOR_EMAIL_HASH="${AUTHOR_EMAIL_HASH:=$(md5sum <<< "$AUTHOR_NAME" | awk '{ print $1 }')}"
 	export AUTHOR_TWITTER="${AUTHOR_TWITTER:=twitter}"
 	export AUTHOR_GITHUB="${AUTHOR_GITHUB:=github}"
+	
+	# categories
+	export CATEGORY_BASELIST="${CATEGORY_BASELIST:=mylife,internet,baker}"
+	export CATEGORY_LINK="<li><a href='index_==catNameSlugged==.html' title='jump to category (not finished)'><i class='fa fa-tag'></i>&nbsp;==catName==</a></li>"
 }
 
 #
@@ -324,6 +328,7 @@ post_post() {
 	---
 	title: $title
 	date: $(date -u +%FT%TZ)
+	category: ${CATEGORY_BASELIST}
 	layout: post
 	draft: true
 	summary:
@@ -416,6 +421,7 @@ readonly POST_DIR; readonly OUTPUT_DIR; readonly DRAFT_DIR; readonly LAYOUT_DIR;
 readonly SITE_NAME; readonly SITE_DESC
 readonly AUTHOR_NAME; readonly AUTHOR_DESC; readonly AUTHOR_EMAIL; readonly AUTHOR_EMAIL_HASH;
 readonly AUTHOR_TWITTER; readonly AUTHOR_GITHUB; readonly DISQUS
+readonly CATEGORY_LINK; readonly CATEGORY_BASELINK
 
 case "$1" in
 bake)
@@ -434,3 +440,5 @@ toggle)
 	usage
 	;;
 esac
+
+# TODO : add flags management : -h help, -c no categories, -f configfile, -w workin this directory, -d change la date ...
