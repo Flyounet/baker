@@ -390,22 +390,24 @@ post_bake() {
 		POST_NEXT="${POST_NEXT%*.md}.html"
 		# look for the categories
                 if [ ${__c:=0} -eq 0 ]; then # When implemented the -c will avoid categories generation
-                        category=''; local _cat=''; CATLIST=''; CATLIS=''
-                        category="$(header category < "$post")"
-                        if [ ! -z "${category}" ]; then
+                        category=''; local _cat=''; TAGSLIST=''; CATLIS=''
+                        tags="$(header category < "$post")"
+                        if [ ! -z "${tags}" ]; then
                                 while read _cat; do
-                                        local _blabla="${CATEGORY_LINK//==catNameSlugged==/$(slug <<< "${_cat}")}"
-                                        _blabla="${_blabla//==catName==/${_cat}}"
-                                        CATLIST="${CATLIST}${_blabla}"
+#                                        local _blabla="${CATEGORY_LINK//==catNameSlugged==/$(slug <<< "${_cat}")}"
+#                                        _blabla="${_blabla//==catName==/${_cat}}"
+#                                        TAGSLIST="${TAGSLIST}${_blabla}"
+                                        TAGSLIST="${TAGSLIST}${CATEGORY_LINK//==catNameSlugged==/$(slug <<< "${_cat}")}"
+                                        TAGSLIST="${TAGSLIST//==catName==/${_cat}}"
                                         _allCats="${_allCats//${_cat},/}${_cat},"
-                                done <<< "$(echo -e "${category//,/\\n}")"
+                                done <<< "$(echo -e "${tags//,/\\n}")"
                         fi
                 else
-                        unset CATLIST
-                        unset category
+                        unset TAGSLIST
+                        unset tags
                 fi
 		# Render the post
-		echo "$idx - $idx_next - $id [Prev:${POST_PREV}][Next:${POST_NEXT}] [Cats:${category}]"
+		echo "$idx - $idx_next - $id [Prev:${POST_PREV}][Next:${POST_NEXT}] [Cats:${tags}]"
 		render_file "$post" > "$OUTPUT_DIR/$id.html" &
 		declare "posts_${idx}_id"="$id"
 		export_headers "$post" "posts_${idx}_"

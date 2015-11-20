@@ -23,10 +23,11 @@
 	<article>
 		{{ content }}
 	</article>
-@if category
+
+@if tags
 	<aside>
 		<ul class="cats">
-			{{ CATLIST }}
+			{{ TAGSLIST }}
 		</ul>
 	</aside> 
 @end
