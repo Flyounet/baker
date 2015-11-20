@@ -10,6 +10,9 @@ readonly POST_DIR=post
 # OUTPUT_DIR stores all compiled html
 readonly OUTPUT_DIR=out
 
+# DRAFT_DIR stores all compiled html
+readonly DRAFT_DIR=draft
+
 # LAYOUT_DIR stores all layout markdown files
 readonly LAYOUT_DIR=layout
 
@@ -279,11 +282,15 @@ usage() {
 
 case "$1" in
 bake)
+	rm -rf "$DRAFT_DIR"
+	mkdir -p "$DRAFT_DIR"
 	rm -rf "$OUTPUT_DIR"
 	mkdir -p "$OUTPUT_DIR"
 
 	[[ -d "$POST_DIR" ]] || usage
 	[[ -d "$PUBLIC_DIR" ]] && cp -r "$PUBLIC_DIR"/. "$OUTPUT_DIR"
+	[[ -d "$PUBLIC_DIR" ]] && cp -r "$PUBLIC_DIR"/. "$DRAFT_DIR"
+	touch "$DRAFT_DIR/index.html"
 
 	readarray -t posts < <(find "$POST_DIR" -name '*.md' | sort -r)
 
@@ -291,7 +298,9 @@ bake)
 	time for post in "${posts[@]}"; do
 		id="$(basename "$post" .md)"
 		# skip drafts
-		[[ "$(header draft < "$post")" == false ]] || continue
+		if [ "$(header draft < "$post")" != false ]; then
+			render_file "$post" > "$DRAFT_DIR/$id.html"; continue;
+		fi
 
 		echo "$id"
 		render_file "$post" > "$OUTPUT_DIR/$id.html" &
