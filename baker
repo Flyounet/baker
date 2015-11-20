@@ -378,7 +378,7 @@ list)
 		done
 	) | column -t
 	;;
-tog)
+toggle)
 	_fname=''
 	readarray -t posts < <(find "$POST_DIR" -name '*.md' | sort -r)
 	if [ -z "${2:-}" ]; then
