@@ -385,9 +385,31 @@ post_bake() {
 		POST_NEXT="$( basename "${posts[$((id_all+idx_next))]}" )"
 		[[ -z "${POST_PREV:=}" ]] && POST_PREV='index.html'
 		[[ -z "${POST_NEXT:=}" ]] && POST_NEXT='index.md'
-		echo "$idx - $idx_next - $id [Prev:${POST_PREV}][Next:${POST_NEXT}]"
 		POST_NEXT="${POST_NEXT%*.md}.html"
-
+		# look for the categories
+                if [ ${__c:=0} -eq 0 ]; then
+                        local category=''; local _cat=''; local CATLIST=''; local CATLIS=''
+set +xv
+                        category="$(header category < "$post")"
+set -xv
+                        if [ ! -z "${category}" ]; then
+                                while read _cat; do
+#                                       CATLIST="${CATLIST}<li><a href='$(slug <<< "${_cat}")/index.html' title='jump to category'><i class='fa fa-tag'></i>&nbsp;${_cat}</a></li>"
+                                        # Faudrait voir à avoir une variable avec remplacement des slugCat et Cat
+#                                       CATLIST="${CATLIST}<li><a href='index.html' title='jump to category (not finished)'><i class='fa fa-tag'></i>&nbsp;${_cat}</a></li>"
+                                        local _blabla="${CATEGORY_LINK//==catNameSlugged==/$(slug <<< "${_cat}")}"
+                                        _blabla="${_blabla//==catName==/${_cat}}"
+                                        CATLIST="${CATLIST}${_blabla}"
+                                        _allCats="${_allCats//${_cat},/}${_cat},"
+# on fait un sumup de toutes catg genre un array ou hashmap (à voir sur un bench speed)
+                                done <<< "$(echo -e "${category//,/\\n}")"
+                        fi
+                else
+                        unset CATLIST
+                        unset category
+                fi
+		# Render the post
+		echo "$idx - $idx_next - $id [Prev:${POST_PREV}][Next:${POST_NEXT}]"
 		render_file "$post" > "$OUTPUT_DIR/$id.html" &
 		declare "posts_${idx}_id"="$id"
 		export_headers "$post" "posts_${idx}_"
