@@ -3,34 +3,38 @@
 #
 # config
 #
+config() {
+	if [ -f "${1:-}" ]; then
+		. "${1}"
+	fi
+	# POST_DIR stores all post markdown files
+	export POST_DIR="${POST_DIR:=post}"
 
-# POST_DIR stores all post markdown files
-readonly POST_DIR=post
+	# OUTPUT_DIR stores all compiled html
+	export OUTPUT_DIR="${OUTPUT_DIR:=out}"
 
-# OUTPUT_DIR stores all compiled html
-readonly OUTPUT_DIR=out
+	# DRAFT_DIR stores all compiled html
+	export DRAFT_DIR="${DRAFT_DIR:=draft}"
 
-# DRAFT_DIR stores all compiled html
-readonly DRAFT_DIR=draft
+	# LAYOUT_DIR stores all layout markdown files
+	export LAYOUT_DIR="${LAYOUT_DIR:=layout}"
 
-# LAYOUT_DIR stores all layout markdown files
-readonly LAYOUT_DIR=layout
+	# PUBLIC_DIR stores css and static images
+	export PUBLIC_DIR="${PUBLIC_DIR:=public}"
 
-# PUBLIC_DIR stores css and static images
-readonly PUBLIC_DIR=public
+	# site
+	export SITE_NAME="${SITE_NAME:=a baker blog}"
+	export SITE_DESC="${SITE_DESC:=written in bash}"
+	export DISQUS="${DISQUS:=bakerbash}"
 
-# site
-readonly SITE_NAME='a baker blog'
-readonly SITE_DESC='written in bash'
-readonly DISQUS='bakerbash'
-
-# author
-readonly AUTHOR_NAME='baker'
-readonly AUTHOR_DESC='a very-experienced bread baker, who also loves planting trees.'
-readonly AUTHOR_EMAIL='email@example.org'
-readonly AUTHOR_EMAIL_HASH="$(md5sum <<< "$AUTHOR_NAME" | awk '{ print $1 }')"
-readonly AUTHOR_TWITTER='twitter'
-readonly AUTHOR_GITHUB='github'
+	# author
+	export AUTHOR_NAME="${AUTHOR_NAME:=baker}"
+	export AUTHOR_DESC="${AUTHOR_DESC:=a very-experienced bread baker, who also loves planting trees.}"
+	export AUTHOR_EMAIL="${AUTHOR_EMAIL:=email@example.org}"
+	export AUTHOR_EMAIL_HASH="${AUTHOR_EMAIL_HASH:=$(md5sum <<< "$AUTHOR_NAME" | awk '{ print $1 }')}"
+	export AUTHOR_TWITTER="${AUTHOR_TWITTER:=twitter}"
+	export AUTHOR_GITHUB="${AUTHOR_GITHUB:=github}"
+}
 
 #
 # helper
@@ -281,6 +285,12 @@ usage() {
 }
 
 (( $# == 0 )) && usage
+
+config
+readonly POST_DIR; readonly OUTPUT_DIR; readonly DRAFT_DIR; readonly LAYOUT_DIR; readonly PUBLIC_DIR
+readonly SITE_NAME; readonly SITE_DESC
+readonly AUTHOR_NAME; readonly AUTHOR_DESC; readonly AUTHOR_EMAIL; readonly AUTHOR_EMAIL_HASH;
+readonly AUTHOR_TWITTER; readonly AUTHOR_GITHUB; readonly DISQUS
 
 case "$1" in
 bake)
