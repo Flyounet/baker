@@ -36,8 +36,8 @@ config() {
 	export AUTHOR_GITHUB="${AUTHOR_GITHUB:=github}"
 	
 	# categories
-	export CATEGORY_BASELIST="${CATEGORY_BASELIST:=mylife,internet,baker}"
-	export CATEGORY_LINK="<li><a href='index_==catNameSlugged==.html' title='jump to category (not finished)'><i class='fa fa-tag'></i>&nbsp;==catName==</a></li>"
+	export TAGS_BASELIST="${TAGS_BASELIST:=mylife,internet,baker}"
+	export TAGS_LINK="${TAGS_LINK:=<li><a href='index_==tagNameSlugged==.html' title='jump to tag'><i class='fa fa-tag'></i>&nbsp;==tagName==</a></li>}"
 }
 
 #
@@ -329,7 +329,7 @@ post_post() {
 	---
 	title: $title
 	date: $(date -u +%FT%TZ)
-	category: ${CATEGORY_BASELIST}
+	tags: ${TAGS_BASELIST}
 	layout: post
 	draft: true
 	summary:
@@ -356,7 +356,7 @@ post_bake() {
 	echo "Rendering Posts..." >&2
 	idx=0
 	id_all=0
-	_allCats=''
+	_allTags=''
 	time for post in "${posts[@]}"; do
 		idx_prev=1;idx_next=1
 		id="$(basename "$post" .md)"
@@ -388,18 +388,15 @@ post_bake() {
 		[[ -z "${POST_PREV:=}" ]] && POST_PREV='index.html'
 		[[ -z "${POST_NEXT:=}" ]] && POST_NEXT='index.md'
 		POST_NEXT="${POST_NEXT%*.md}.html"
-		# look for the categories
-                if [ ${__c:=0} -eq 0 ]; then # When implemented the -c will avoid categories generation
-                        category=''; local _cat=''; TAGSLIST=''; CATLIS=''
-                        tags="$(header category < "$post")"
+		# look for the tags
+                if [ ${__c:=0} -eq 0 ]; then # When implemented the -c will avoid tags generation
+                        local _tag=''; TAGSLIST=''
+                        tags="$(header tags < "$post")"
                         if [ ! -z "${tags}" ]; then
-                                while read _cat; do
-#                                        local _blabla="${CATEGORY_LINK//==catNameSlugged==/$(slug <<< "${_cat}")}"
-#                                        _blabla="${_blabla//==catName==/${_cat}}"
-#                                        TAGSLIST="${TAGSLIST}${_blabla}"
-                                        TAGSLIST="${TAGSLIST}${CATEGORY_LINK//==catNameSlugged==/$(slug <<< "${_cat}")}"
-                                        TAGSLIST="${TAGSLIST//==catName==/${_cat}}"
-                                        _allCats="${_allCats//${_cat},/}${_cat},"
+                                while read _tag; do
+                                        TAGSLIST="${TAGSLIST}${TAGS_LINK//==tagNameSlugged==/$(slug <<< "${_tag}")}"
+                                        TAGSLIST="${TAGSLIST//==tagName==/${_tag}}"
+                                        _allTags="${_allTags//${_tag},/}${_tag},"
                                 done <<< "$(echo -e "${tags//,/\\n}")"
                         fi
                 else
@@ -407,7 +404,7 @@ post_bake() {
                         unset tags
                 fi
 		# Render the post
-		echo "$idx - $idx_next - $id [Prev:${POST_PREV}][Next:${POST_NEXT}] [Cats:${tags}]"
+		echo "$idx - $idx_next - $id [Prev:${POST_PREV}][Next:${POST_NEXT}] [Tags:${tags}]"
 		render_file "$post" > "$OUTPUT_DIR/$id.html" &
 		declare "posts_${idx}_id"="$id"
 		export_headers "$post" "posts_${idx}_"
@@ -441,7 +438,7 @@ readonly POST_DIR; readonly OUTPUT_DIR; readonly DRAFT_DIR; readonly LAYOUT_DIR;
 readonly SITE_NAME; readonly SITE_DESC
 readonly AUTHOR_NAME; readonly AUTHOR_DESC; readonly AUTHOR_EMAIL; readonly AUTHOR_EMAIL_HASH;
 readonly AUTHOR_TWITTER; readonly AUTHOR_GITHUB; readonly DISQUS
-readonly CATEGORY_LINK; readonly CATEGORY_BASELINK
+readonly TAGS_LINK; readonly TAGS_BASELINK
 
 case "$1" in
 bake)

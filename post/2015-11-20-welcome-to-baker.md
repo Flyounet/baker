@@ -1,7 +1,7 @@
 ---
 title: Welcome to Baker!
 date: 2015-11-20T11:06:07Z
-category: baker
+tags: baker
 layout: post
 draft: false
 summary: This is your second post.

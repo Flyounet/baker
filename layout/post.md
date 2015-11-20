@@ -26,7 +26,7 @@
 
 @if tags
 	<aside>
-		<ul class="cats">
+		<ul class="tags">
 			{{ TAGSLIST }}
 		</ul>
 	</aside> 
