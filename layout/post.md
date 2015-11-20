@@ -12,6 +12,8 @@
 	<nav>
 		<ul class="nav nav-pills pull-right">
 			<li class="active"><a href="index.html">Home</a></li>
+			<li><a href="{{ POST_PREV }}" title="Newer"><i class="fa fa-long-arrow-left fa-2x"></i></a></li>
+			<li><a href="{{ POST_NEXT }}" title="Older"><i class="fa fa-long-arrow-right fa-2x"></i></a></li>
 			<li><a href="#author">About</a></li>
 		</ul>
 	</nav>
