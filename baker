@@ -293,22 +293,50 @@ bake)
 	touch "$DRAFT_DIR/index.html"
 
 	readarray -t posts < <(find "$POST_DIR" -name '*.md' | sort -r)
-
+	echo "Rendering Posts..." >&2
 	idx=0
+	id_all=0
 	time for post in "${posts[@]}"; do
+		idx_prev=1;idx_next=1
 		id="$(basename "$post" .md)"
 		# skip drafts
 		if [ "$(header draft < "$post")" != false ]; then
-			render_file "$post" > "$DRAFT_DIR/$id.html"; continue;
+			(( id_all++ ))
+			POST_PREV='index.html';POST_NEXT='index.html'; render_file "$post" > "$DRAFT_DIR/$id.html"; continue;
 		fi
+		if [ ${idx} -eq 0 ]; then # It's the first post, so the newer one is index
+			id_prev=0
+		else # search for the previous post not draft
+			while [ -f "${posts[$((id_all-idx_prev))]}" -a "$(header draft < "${posts[$((id_all-idx_prev))]}" 2>/dev/null)" != false ]; do
+				(( idx_prev++ ))
+				if [ ${idx_prev} -gt ${id_all} ]; then idx_prev=${id_all}; break; fi
+			done 2>/dev/null
+		fi
+		# look for the next older post not draft
+		while [ -f "${posts[$((id_all+idx_next))]}" -a "$(header draft < "${posts[$((id_all+idx_next))]}" 2>/dev/null)" != false ]; do
+			(( idx_next++ ))
+		done 2>/dev/null
 
-		echo "$id"
+		if [ ${idx} -eq 0 -o $((idx_all-idx_prev)) -eq 0 -a ${id_all} -eq 0 ]; then
+			POST_PREV="index.html"
+		else
+			POST_PREV="$( basename "${posts[$((id_all-idx_prev))]}" )"
+			POST_PREV="${POST_PREV%*.md}.html"
+		fi
+		POST_NEXT="$( basename "${posts[$((id_all+idx_next))]}" )"
+		[[ -z "${POST_PREV:=}" ]] && POST_PREV='index.html'
+		[[ -z "${POST_NEXT:=}" ]] && POST_NEXT='index.md'
+		echo "$idx - $idx_next - $id [Prev:${POST_PREV}][Next:${POST_NEXT}]"
+		POST_NEXT="${POST_NEXT%*.md}.html"
+
 		render_file "$post" > "$OUTPUT_DIR/$id.html" &
 		declare "posts_${idx}_id"="$id"
 		export_headers "$post" "posts_${idx}_"
+		POST_PREV="$id.html"
+		(( id_all++ ))
 		(( idx++ ))
 	done
-
+	echo "Rendering Index..." >&2
 	render_file "$LAYOUT_DIR/index.md" > "$OUTPUT_DIR/index.html" &
 	wait
 	;;
