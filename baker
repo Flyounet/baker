@@ -274,6 +274,7 @@ usage() {
 	baker
 	  post [title]  draft a post
 	  bake          ship all posts
+	  list		list all posts with state
 	EOF
 	exit 1
 }
@@ -358,6 +359,23 @@ post)
 
 	echo "$post_file"
 	[[ "$EDITOR" ]] && $EDITOR "$post_file"
+	;;
+list)
+	idx=0
+	readarray -t posts < <(find "$POST_DIR" -name '*.md' | sort -r)
+	(
+		echo "id title status"
+		for post in "${posts[@]}"; do
+			id="$(basename "$post" .md)"
+			# skip drafts
+			if [ "$(header draft < "$post")" == 'false' ]; then
+				echo "${idx} $id [Published]"
+			else
+				echo "${idx} $id [Draft]"
+			fi
+			((idx++))
+		done
+	) | column -t
 	;;
 *)
 	usage
