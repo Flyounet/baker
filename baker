@@ -59,7 +59,7 @@ body() {
 
 # slug creates a friendly URL like 'hello-world'
 slug() {
-	tr -cs '[:alnum:]\n' - | tr '[:upper:]' '[:lower:]' | sed 's|^-*||;s|-*$||'
+	iconv -f utf8 -t ascii//TRANSLIT | tr -cs '[:alnum:]\n' - | tr '[:upper:]' '[:lower:]' | sed 's|^-*||;s|-*$||'
 }
 
 #
