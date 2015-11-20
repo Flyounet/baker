@@ -4,6 +4,7 @@
 # config
 #
 config() {
+	echo "Reading Configuration..." >&2
 	if [ -f "${1:-}" ]; then
 		. "${1}"
 	fi
