@@ -377,6 +377,28 @@ list)
 		done
 	) | column -t
 	;;
+tog)
+	_fname=''
+	readarray -t posts < <(find "$POST_DIR" -name '*.md' | sort -r)
+	if [ -z "${2:-}" ]; then
+		usage
+	elif [ -z "${2//[0-9]/}" ]; then
+		if [ ${2} -lt ${#posts[@]} ]; then
+			_fname="${posts[${2}]}"
+		fi
+	elif [ -f "${POST_DIR}/${2}" -o -f "${POST_DIR}/${2}.md" ]; then
+		_fname="${POST_DIR}/${2//\.md/}.md"
+	fi
+	if [ -z "${_fname}" ]; then
+		echo "This post doesn't exist"
+		exit 1
+	fi
+	if [ "$(header draft < "${_fname}")" == 'false' ]; then
+		sed -i -e 's;^[[:space:]]*draft:[[:space:]]*false[[:space:]]*$;draft: true;g'  "${_fname}"
+	else
+		sed -i -e 's;^[[:space:]]*draft:[[:space:]]*.*[[:space:]]*$;draft: false;g'  "${_fname}"
+	fi
+	;;
 *)
 	usage
 	;;
