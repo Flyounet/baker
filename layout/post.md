@@ -24,6 +24,14 @@
 		{{ content }}
 	</article>
 
+@if tags
+	<aside>
+		<ul class="tags">
+			{{ TAGSLIST }}
+		</ul>
+	</aside> 
+@end
+
 	<footer id="author" class="row">
 		<section class="col-md-5">
 			<p class="post-date">Published on <time>{{ date }}</time></p>

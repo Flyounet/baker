@@ -35,6 +35,10 @@ config() {
 	export AUTHOR_EMAIL_HASH="${AUTHOR_EMAIL_HASH:=$(md5sum <<< "$AUTHOR_NAME" | awk '{ print $1 }')}"
 	export AUTHOR_TWITTER="${AUTHOR_TWITTER:=twitter}"
 	export AUTHOR_GITHUB="${AUTHOR_GITHUB:=github}"
+	
+	# categories
+	export TAGS_BASELIST="${TAGS_BASELIST:=mylife,internet,baker}"
+	export TAGS_LINK="${TAGS_LINK:=<li><a href='index_==tagNameSlugged==.html' title='jump to tag'><i class='fa fa-tag'></i>&nbsp;==tagName==</a></li>}"
 }
 
 #
@@ -155,6 +159,8 @@ render_if() {
 	local lines
 	local line
 	readarray -t lines
+	# The following regexp should be a little amended to allow more than one space|tab
+	# between the @if and id (AND after)
 	[[ "${lines[0]}" =~ ^@if\ ('!')?($VAR_ID)$ ]] || return 1
 
 	# skip render on undefined_var or !defined_var
@@ -163,7 +169,6 @@ render_if() {
 	else
 		[[ "${BASH_REMATCH[1]}" == '!' ]] || return 0
 	fi
-
 	# recursively render the inner block
 	for line in "${lines[@]:1:${#lines[@]}-2}"; do
 		echo "$line"
@@ -325,6 +330,7 @@ post_post() {
 	---
 	title: $title
 	date: $(date -u +%FT%TZ)
+	tags: ${TAGS_BASELIST}
 	layout: post
 	draft: true
 	summary:
@@ -351,6 +357,7 @@ post_bake() {
 	echo "Rendering Posts..." >&2
 	idx=0
 	id_all=0
+	_allTags=''
 	time for post in "${posts[@]}"; do
 		idx_prev=1;idx_next=1
 		id="$(basename "$post" .md)"
@@ -381,9 +388,24 @@ post_bake() {
 		POST_NEXT="$( basename "${posts[$((id_all+idx_next))]}" )"
 		[[ -z "${POST_PREV:=}" ]] && POST_PREV='index.html'
 		[[ -z "${POST_NEXT:=}" ]] && POST_NEXT='index.md'
-		echo "$idx - $idx_next - $id [Prev:${POST_PREV}][Next:${POST_NEXT}]"
 		POST_NEXT="${POST_NEXT%*.md}.html"
-
+		# look for the tags
+		if [ ${__c:=0} -eq 0 ]; then # When implemented the -c will avoid tags generation
+			local _tag=''; TAGSLIST=''
+			tags="$(header tags < "$post")"
+			if [ ! -z "${tags}" ]; then
+				while read _tag; do
+					TAGSLIST="${TAGSLIST}${TAGS_LINK//==tagNameSlugged==/$(slug <<< "${_tag}")}"
+					TAGSLIST="${TAGSLIST//==tagName==/${_tag}}"
+					_allTags="${_allTags//${_tag},/}${_tag},"
+				done <<< "$(echo -e "${tags//,/\\n}")"
+			fi
+		else
+			unset TAGSLIST
+			unset tags
+		fi
+		# Render the post
+		echo "$idx - $idx_next - $id [Prev:${POST_PREV}][Next:${POST_NEXT}] [Tags:${tags}]"
 		render_file "$post" > "$OUTPUT_DIR/$id.html" &
 		declare "posts_${idx}_id"="$id"
 		export_headers "$post" "posts_${idx}_"
@@ -394,6 +416,32 @@ post_bake() {
 	echo "Rendering Index..." >&2
 	render_file "$LAYOUT_DIR/index.md" > "$OUTPUT_DIR/index.html" &
 	wait
+	# Generate the indexes for each tags
+	if [ ${__c:=0} -eq 0 ]; then
+		echo "Rendering Index for categories..." >&2
+		while read _tagIdx; do
+			# It's really important to unset all posts variables
+			while read a; do unset "${a}"; done <<< "$(compgen  -v | grep -E "^posts_[0-9]")"
+			idx=0
+			id_all=0
+			for post in "${posts[@]}"; do
+				id="$(basename "$post" .md)"
+				if [ "$(header draft < "$post")" != false ]; then continue; fi
+				tags="$(header tags < "$post")"
+				if [ ! -z "${tags}" ]; then
+					while read _tag; do
+						if [ "${_tag}" = "${_tagIdx}" ] ; then
+							declare "posts_${idx}_id"="$id"
+							export_headers "$post" "posts_${idx}_"
+							(( idx++ ))
+						fi
+					done <<< "$(echo -e "${tags//,/\\n}")"
+				fi
+			done
+			render_file "$LAYOUT_DIR/index.md" > "$OUTPUT_DIR/index_$(slug <<< "${_tagIdx}").html" &
+			wait
+		done <<< "$(echo -e "${_allTags//,/\\n}")"
+	fi
 }
 
 #
@@ -417,6 +465,7 @@ readonly POST_DIR; readonly OUTPUT_DIR; readonly DRAFT_DIR; readonly LAYOUT_DIR;
 readonly SITE_NAME; readonly SITE_DESC
 readonly AUTHOR_NAME; readonly AUTHOR_DESC; readonly AUTHOR_EMAIL; readonly AUTHOR_EMAIL_HASH;
 readonly AUTHOR_TWITTER; readonly AUTHOR_GITHUB; readonly DISQUS
+readonly TAGS_LINK; readonly TAGS_BASELINK
 
 case "$1" in
 bake)
@@ -435,3 +484,5 @@ toggle)
 	usage
 	;;
 esac
+
+# TODO : add flags management : -h help, -c no categories, -f configfile, -w workin this directory, -d change la date ...
