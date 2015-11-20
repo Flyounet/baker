@@ -275,6 +275,7 @@ usage() {
 	  post [title]  draft a post
 	  bake          ship all posts
 	  list		list all posts with state
+	  toggle [post] toggle the draft status of a post
 	EOF
 	exit 1
 }
