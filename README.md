@@ -6,7 +6,7 @@
 - [x] Markdown
 - [x] Draft
 - [ ] Video/Audio (ffmpeg)
-- [ ] Tag
+- [x] Tag
 - [ ] RSS
 
 ## Start your first post
@@ -16,6 +16,8 @@
 2. Change `draft` from `true` to `false` to publish the post (or use the `./baker toggle id`).
 
 3. Bake all posts: `./baker bake`
+
+4. Verify which post, you already cooked: `./bake list`
 
 ## Template redesigned
 
