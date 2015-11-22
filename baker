@@ -276,6 +276,42 @@ render_file() {
 	echo "$content"
 }
 
+# post_date change the date of a post and the name (unless a future -D is used)
+post_date() {
+	local _fname=''
+	readarray -t posts < <(find "$POST_DIR" -name '*.md' | sort -r)
+	if [ -z "${1:-}" ]; then
+		usage
+	elif [ -z "${1//[0-9]/}" ]; then
+		if [ ${1} -lt ${#posts[@]} ]; then
+			_fname="${posts[${1}]}"
+		fi
+	elif [ -f "${POST_DIR}/${1}" -o -f "${POST_DIR}/${1}.md" ]; then
+		_fname="${POST_DIR}/${1//\.md/}.md"
+	fi
+	if [ -z "${_fname}" ]; then
+		echo "This post doesn't exist"
+		exit 1
+	fi
+	_pDate="$(header date < "${_fname}")"
+	echo "For post ${_fname}, date has been set to : ${_pDate}"
+	read -i "${_PDate}" -p "Please, enter the new date/time for your post: " _nDate
+	if [ -z "${_nDate}" ]; then
+		echo "You wanted to set an empty date. Aborting..." >&2
+		exit 1
+	fi
+	_nDate="$(date -u "+%FT%TZ" --date "${_nDate}" 2>/dev/null)"
+	if [ ${?} -ne 0 ]; then
+		echo "Date invalide." >&2
+		exit 1
+	else
+		sed -i -e 's;^[[:space:]]*date:[[:space:]]*.*$;date: '"${_nDate}"';g'  "${_fname}"
+	fi
+	if [ ${__D:=0} -eq 0 ]; then
+		mv "${_fname}" "${POST_DIR}/$(sed -e 's;^\([0-9]\{4\}\(-[0-9]\{2\}\)\{2\}-\);'"$(date "+%Y-%m-%d" --date "${_nDate}")"'-;g' <<< "${_fname##*/}")"
+	fi
+}
+
 # post_toggle toggles the status of a post (either use ID or post name)
 post_toggle() {
 	local _fname=''
@@ -453,7 +489,8 @@ usage() {
 	  post [title]  draft a post
 	  bake          ship all posts
 	  list		list all posts with state
-	  toggle [post] toggle the draft status of a post
+	  toggle [post]	toggle the draft status of a post
+	  date [post]	change the date (and name) of a post
 	EOF
 	exit 1
 }
@@ -479,6 +516,9 @@ list)
 	;;
 toggle)
 	post_toggle "${@:2}"
+	;;
+date)
+	post_date "${@:2}"
 	;;
 *)
 	usage
