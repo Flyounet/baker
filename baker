@@ -8,20 +8,21 @@ config() {
 	if [ -f "${1:-}" ]; then
 		. "${1}"
 	fi
+	[[ "${__w:-}" ]] && echo "Forced working dir is ${__w}"
 	# POST_DIR stores all post markdown files
-	export POST_DIR="${POST_DIR:=post}"
+	export POST_DIR="${POST_DIR:=${__w:=./}post}"
 
 	# OUTPUT_DIR stores all compiled html
-	export OUTPUT_DIR="${OUTPUT_DIR:=out}"
+	export OUTPUT_DIR="${OUTPUT_DIR:=${__w:=./}out}"
 
 	# DRAFT_DIR stores all compiled html
-	export DRAFT_DIR="${DRAFT_DIR:=draft}"
+	export DRAFT_DIR="${DRAFT_DIR:=${__w:=./}draft}"
 
 	# LAYOUT_DIR stores all layout markdown files
-	export LAYOUT_DIR="${LAYOUT_DIR:=layout}"
+	export LAYOUT_DIR="${LAYOUT_DIR:=${__w:=./}layout}"
 
 	# PUBLIC_DIR stores css and static images
-	export PUBLIC_DIR="${PUBLIC_DIR:=public}"
+	export PUBLIC_DIR="${PUBLIC_DIR:=${__w:=./}public}"
 
 	# site
 	export SITE_NAME="${SITE_NAME:=a baker blog}"
@@ -290,20 +291,17 @@ post_date() {
 		_fname="${POST_DIR}/${1//\.md/}.md"
 	fi
 	if [ -z "${_fname}" ]; then
-		echo "This post doesn't exist"
-		exit 1
+		die "This post doesn't exist"
 	fi
 	_pDate="$(header date < "${_fname}")"
 	echo "For post ${_fname}, date has been set to : ${_pDate}"
 	read -i "${_PDate}" -p "Please, enter the new date/time for your post: " _nDate
 	if [ -z "${_nDate}" ]; then
-		echo "You wanted to set an empty date. Aborting..." >&2
-		exit 1
+		die "You wanted to set an empty date. Aborting..."
 	fi
 	_nDate="$(date -u "+%FT%TZ" --date "${_nDate}" 2>/dev/null)"
 	if [ ${?} -ne 0 ]; then
-		echo "Date invalide." >&2
-		exit 1
+		die "Date invalide."
 	else
 		sed -i -e 's;^[[:space:]]*date:[[:space:]]*.*$;date: '"${_nDate}"';g'  "${_fname}"
 	fi
@@ -326,8 +324,7 @@ post_toggle() {
 		_fname="${POST_DIR}/${1//\.md/}.md"
 	fi
 	if [ -z "${_fname}" ]; then
-		echo "This post doesn't exist"
-		exit 1
+		die "This post doesn't exist"
 	fi
 	if [ "$(header draft < "${_fname}")" == 'false' ]; then
 		sed -i -e 's;^[[:space:]]*draft:[[:space:]]*false[[:space:]]*$;draft: true;g'  "${_fname}"
@@ -339,6 +336,7 @@ post_toggle() {
 # post_list list the id title and status of posts
 post_list() {
 	local idx=0
+	[[ ! -d "${POST_DIR}" ]] && die "${POST_DIR} doesn't exit. Aborting..."
 	readarray -t posts < <(find "$POST_DIR" -name '*.md' | sort -r)
 	(
 		echo "id title status"
@@ -360,7 +358,7 @@ post_post() {
 	readonly title="${@}"
 	[[ "$title" ]] || usage
 
-	mkdir -p "$POST_DIR" || ( echo "Can't create '$POST_DIR'" >&2; exit 1 )
+	mkdir -p "$POST_DIR" || die "Can't create '$POST_DIR'"
 	readonly post_file="$POST_DIR/$(date +%Y-%m-%d)-$(slug <<< "$title").md"
 	cat > "$post_file" <<-EOF
 	---
@@ -379,10 +377,8 @@ post_post() {
 
 # post_bake it's where the magic start
 post_bake() {
-	rm -rf "$DRAFT_DIR"
-	mkdir -p "$DRAFT_DIR"
-	rm -rf "$OUTPUT_DIR"
-	mkdir -p "$OUTPUT_DIR"
+	rm -rf "$DRAFT_DIR" "$OUTPUT_DIR"
+	mkdir -p "$DRAFT_DIR" "$OUTPUT_DIR"
 
 	[[ -d "$POST_DIR" ]] || usage
 	[[ -d "$PUBLIC_DIR" ]] && cp -r "$PUBLIC_DIR"/. "$OUTPUT_DIR"
@@ -480,6 +476,12 @@ post_bake() {
 	fi
 }
 
+# die print message to stderr and exit
+die() {
+	echo -e "${@}" >&2
+	exit 1
+}
+
 #
 # usage
 #
@@ -508,34 +510,58 @@ if [[ ${1:-} =~ ${_regex} ]]; then
 		*) usage ;;
 	esac
 else
+	# used      : ---b--Dd---f--Hh-------l-------p-----s-t-----w----------------
+	# available : AaB-Cc--EeF-Gg--IiJjKkL-MmNnOoP-QqRrS-T-UuVvW-XxYyZz0123456789
+	while getopts ":d:f:p:s:w:bDhHlt" option; do
+		case ${option} in
+			b) __b=1;;
+			c) __c=1;;
+			d) __d=1;__post="${OPTARG}";;
+			D) __D=1;;
+			l) __l=1;;
+			f) __f="${OPTARG}";;
+			p) __p=1;__post="${OPTARG}";;
+			s) __s=1;__post="${OPTARG}";;
+			t) __t=1;;
+			w) [[ -d "${OPTARG}" ]] && __w="$( cd ${OPTARG}; pwd)/";;
+			?|H|h) usage; exit 0;;
+			*) echo "Argument unknown" >&2; usage;;
+		esac
+	done
 fi
 
-config
+if [ $(( ${__b:=0} + ${__d:=0} + ${__l:=0} + ${__p:=0} + ${__s:=0} )) -gt 1 ]; then
+	echo "You have to choose between -b, -d, -l, -p, -s" >&2
+	usage
+elif [ $(( ${__b:=0} + ${__d:=0} + ${__l:=0} + ${__p:=0} + ${__s:=0} )) -lt 1 ]; then
+	echo "Nothing to do ?" >&2
+	usage
+fi
+if [ ! -z "${__w:=}" -a ! -d "${__w}" ]; then
+	echo "Working directory doesn't exist !" >&2
+	usage
+fi
+config "${__f:=}"
+
 readonly POST_DIR; readonly OUTPUT_DIR; readonly DRAFT_DIR; readonly LAYOUT_DIR; readonly PUBLIC_DIR
 readonly SITE_NAME; readonly SITE_DESC
 readonly AUTHOR_NAME; readonly AUTHOR_DESC; readonly AUTHOR_EMAIL; readonly AUTHOR_EMAIL_HASH;
 readonly AUTHOR_TWITTER; readonly AUTHOR_GITHUB; readonly DISQUS
 readonly TAGS_LINK; readonly TAGS_BASELINK
 
-case "$1" in
-bake)
-	post_bake
-	;;
-post)
-	post_post "${@:2}"
-	;;
-list)
-	post_list
-	;;
-toggle)
-	post_toggle "${@:2}"
-	;;
-date)
-	post_date "${@:2}"
-	;;
-*)
-	usage
-	;;
-esac
 
-# TODO : add flags management : -h help, -c no categories, -f configfile, -w workin this directory, -d change la date ...
+if [ ${__b} -eq 1 ]; then
+	bake
+elif [ ${__l} -eq 1 ]; then
+	post_list
+elif [ ${__d} -eq 1 ]; then
+	post_date "${__post}"
+elif [ ${__s} -eq 1 ]; then
+	post_toggle "${__post}"
+elif [ ${__p} -eq 1 ]; then
+	post_post "${__post}"
+else
+	die "Warp  Zone : Mario was here"
+fi
+exit 0
+
