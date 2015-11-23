@@ -5,10 +5,9 @@
 #
 config() {
 	echo "Reading Configuration..." >&2
-	if [ -f "${1:-}" ]; then
-		. "${1}"
-	fi
+	[[ -f "$(readlink -m "${1:-}")" ]] && . "${1}"
 	[[ "${__w:-}" ]] && echo "Forced working dir is ${__w}"
+
 	# POST_DIR stores all post markdown files
 	export POST_DIR="${POST_DIR:=${__w:=./}post}"
 
@@ -296,9 +295,7 @@ post_date() {
 	_pDate="$(header date < "${_fname}")"
 	echo "For post ${_fname}, date has been set to : ${_pDate}"
 	read -i "${_PDate}" -p "Please, enter the new date/time for your post: " _nDate
-	if [ -z "${_nDate}" ]; then
-		die "You wanted to set an empty date. Aborting..."
-	fi
+	[[ -z "${_nDate}" ]] && die "You wanted to set an empty date. Aborting..."
 	_nDate="$(date -u "+%FT%TZ" --date "${_nDate}" 2>/dev/null)"
 	if [ ${?} -ne 0 ]; then
 		die "Date invalide."
@@ -317,15 +314,11 @@ post_toggle() {
 		usage
 	elif [ -z "${1//[0-9]/}" ]; then
 		readarray -t posts < <(find "$POST_DIR" -name '*.md' | sort -r)
-		if [ ${1} -lt ${#posts[@]} ]; then
-			_fname="${posts[${1}]}"
-		fi
+		[[ ${1} -lt ${#posts[@]} ]] && _fname="${posts[${1}]}"
 	elif [ -f "${POST_DIR}/${1}" -o -f "${POST_DIR}/${1}.md" ]; then
 		_fname="${POST_DIR}/${1//\.md/}.md"
 	fi
-	if [ -z "${_fname}" ]; then
-		die "This post doesn't exist"
-	fi
+	[[ -z "${_fname}" ]] && die "This post doesn't exist"
 	if [ "$(header draft < "${_fname}")" == 'false' ]; then
 		sed -i -e 's;^[[:space:]]*draft:[[:space:]]*false[[:space:]]*$;draft: true;g'  "${_fname}"
 	else
@@ -487,12 +480,24 @@ die() {
 #
 usage() {
 	cat <<-EOF
-	baker
-	  post [title]  draft a post
-	  bake          ship all posts
-	  list		list all posts with state
-	  toggle [post]	toggle the draft status of a post
-	  date [post]	change the date (and name) of a post
+	### This special version has 2 flavours, the old one : 
+	baker 
+	  post [title]  draft a post 
+	  bake          ship all posts 
+	  list          list all posts with state
+	  toggle [post] toggle the draft status of a post
+	### And the new one :
+	baker [-p <title>|-b [-t]|-l|-s <title|id>|-d <title|id> [-D]] [-f <filename>] [-w <path>] [-h]
+	  -b            ship all posts
+	  -d [title|id] change the date of a post
+	  -D            don't change the filename when changing date
+	  -f [file]     get the configuration from a file
+	  -h            print help (you currently read it)
+	  -l            list all posts with state
+	  -p "[title]"  draft a post
+	  -s [title|id] toggle the draft status of a post
+	  -t            don't generate tags
+	  -w [path]     use this path to work instead of ./
 	EOF
 	exit 1
 }
