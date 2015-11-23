@@ -482,12 +482,14 @@ usage() {
 	cat <<-EOF
 	### This special version has 2 flavours, the old one : 
 	baker 
-	  post [title]  draft a post 
-	  bake          ship all posts 
-	  list          list all posts with state
-	  toggle [post] toggle the draft status of a post
+	  post   [title] draft a post 
+	  bake           ship all posts 
+	  list           list all posts with state
+	  toggle [post]  toggle the draft status of a post
+	  date   [title] change the date of a post
+	  rename [title] parse the header to re-generate the filename of a post
 	### And the new one :
-	baker [-p <title>|-b [-t]|-l|-s <title|id>|-d <title|id> [-D]] [-f <filename>] [-w <path>] [-h]
+	baker [-p <title>|-b [-t]|-l|-s <title|id>|-d <title|id> [-D]|-r <title|id>] [-f <filename>] [-w <path>] [-h]
 	  -b            ship all posts
 	  -d [title|id] change the date of a post
 	  -D            don't change the filename when changing date
@@ -495,6 +497,7 @@ usage() {
 	  -h            print help (you currently read it)
 	  -l            list all posts with state
 	  -p "[title]"  draft a post
+	  -r [title|id] toggle the draft status of a post
 	  -s [title|id] toggle the draft status of a post
 	  -t            don't generate tags
 	  -w [path]     use this path to work instead of ./
@@ -504,7 +507,7 @@ usage() {
 
 (( $# == 0 )) && usage
 
-_regex='^(post|bake|list|toggle|date)$'
+_regex='^(post|bake|list|toggle|date|rename)$'
 if [[ ${1:-} =~ ${_regex} ]]; then
 	case "$1" in
 		bake) __b=1 ;;
@@ -512,12 +515,13 @@ if [[ ${1:-} =~ ${_regex} ]]; then
 		list) __l=1;;
 		toggle) __t=1; __post="${@:2}" ;;
 		date) post_date "${@:2}" ;;
+		rename) post_rename "${@:2}" ;;
 		*) usage ;;
 	esac
 else
-	# used      : ---b--Dd---f--Hh-------l-------p-----s-t-----w----------------
-	# available : AaB-Cc--EeF-Gg--IiJjKkL-MmNnOoP-QqRrS-T-UuVvW-XxYyZz0123456789
-	while getopts ":d:f:p:s:w:bDhHlt" option; do
+	# used      : ---b--Dd---f--Hh-------l-------p---r-s-t-----w----------------
+	# available : AaB-Cc--EeF-Gg--IiJjKkL-MmNnOoP-QqR-S-T-UuVvW-XxYyZz0123456789
+	while getopts ":d:f:p:r:s:w:bDhHlt" option; do
 		case ${option} in
 			b) __b=1;;
 			c) __c=1;;
@@ -526,6 +530,7 @@ else
 			l) __l=1;;
 			f) __f="${OPTARG}";;
 			p) __p=1;__post="${OPTARG}";;
+			r) __r=1;__post="${OPTARG}";;
 			s) __s=1;__post="${OPTARG}";;
 			t) __t=1;;
 			w) [[ -d "${OPTARG}" ]] && __w="$( cd ${OPTARG}; pwd)/";;
@@ -535,10 +540,10 @@ else
 	done
 fi
 
-if [ $(( ${__b:=0} + ${__d:=0} + ${__l:=0} + ${__p:=0} + ${__s:=0} )) -gt 1 ]; then
-	echo "You have to choose between -b, -d, -l, -p, -s" >&2
+if [ $(( ${__b:=0} + ${__d:=0} + ${__l:=0} + ${__p:=0} + ${__r:=0} + ${__s:=0} )) -gt 1 ]; then
+	echo "You have to choose between -b, -d, -l, -p, -r, -s" >&2
 	usage
-elif [ $(( ${__b:=0} + ${__d:=0} + ${__l:=0} + ${__p:=0} + ${__s:=0} )) -lt 1 ]; then
+elif [ $(( ${__b:=0} + ${__d:=0} + ${__l:=0} + ${__p:=0} + ${__r:=0} + ${__s:=0} )) -lt 1 ]; then
 	echo "Nothing to do ?" >&2
 	usage
 fi
@@ -561,10 +566,12 @@ elif [ ${__l} -eq 1 ]; then
 	post_list
 elif [ ${__d} -eq 1 ]; then
 	post_date "${__post}"
-elif [ ${__s} -eq 1 ]; then
-	post_toggle "${__post}"
 elif [ ${__p} -eq 1 ]; then
 	post_post "${__post}"
+elif [ ${__r} -eq 1 ]; then
+	post_rename "${__post}"
+elif [ ${__s} -eq 1 ]; then
+	post_toggle "${__post}"
 else
 	die "Warp  Zone : Mario was here"
 fi
