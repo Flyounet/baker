@@ -497,6 +497,19 @@ usage() {
 
 (( $# == 0 )) && usage
 
+_regex='^(post|bake|list|toggle|date)$'
+if [[ ${1:-} =~ ${_regex} ]]; then
+	case "$1" in
+		bake) __b=1 ;;
+		post) __p=1; __post="${@:2}" ;;
+		list) __l=1;;
+		toggle) __t=1; __post="${@:2}" ;;
+		date) post_date "${@:2}" ;;
+		*) usage ;;
+	esac
+else
+fi
+
 config
 readonly POST_DIR; readonly OUTPUT_DIR; readonly DRAFT_DIR; readonly LAYOUT_DIR; readonly PUBLIC_DIR
 readonly SITE_NAME; readonly SITE_DESC
