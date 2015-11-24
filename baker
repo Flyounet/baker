@@ -487,12 +487,27 @@ die() {
 #
 usage() {
 	cat <<-EOF
-	baker
-	  post [title]  draft a post
-	  bake          ship all posts
-	  list		list all posts with state
-	  toggle [post]	toggle the draft status of a post
-	  date [post]	change the date (and name) of a post
+	### This special version has 2 flavours, the old one : 
+	baker 
+	  post   [title] draft a post 
+	  bake           ship all posts 
+	  list           list all posts with state
+	  toggle [post]  toggle the draft status of a post
+	  date   [title] change the date of a post
+	  rename [title] parse the header to re-generate the filename of a post
+	### And the new one :
+	baker [-p <title>|-b [-t]|-l|-s <title|id>|-d <title|id> [-D]|-r <title|id>] [-f <filename>] [-w <path>] [-h]
+	  -b            ship all posts
+	  -d [title|id] change the date of a post
+	  -D            don't change the filename when changing date
+	  -f [file]     get the configuration from a file
+	  -h            print help (you currently read it)
+	  -l            list all posts with state
+	  -p "[title]"  draft a post
+	  -r [title|id] toggle the draft status of a post
+	  -s [title|id] toggle the draft status of a post
+	  -t            don't generate tags
+	  -w [path]     use this path to work instead of ./
 	EOF
 	exit 1
 }
