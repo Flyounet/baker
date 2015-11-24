@@ -506,7 +506,7 @@ if [[ ${1:-} =~ ${_regex} ]]; then
 		post) __p=1; __post="${@:2}" ;;
 		list) __l=1;;
 		toggle) __t=1; __post="${@:2}" ;;
-		date) post_date "${@:2}" ;;
+		date) __d=1; __post="${@:2}" ;;
 		*) usage ;;
 	esac
 else
