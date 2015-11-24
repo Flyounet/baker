@@ -352,14 +352,14 @@ post_list() {
 	[[ ! -d "${POST_DIR}" ]] && die "${POST_DIR} doesn't exit. Aborting..."
 	readarray -t posts < <(find "$POST_DIR" -name '*.md' | sort -r)
 	(
-		echo "id title status"
+		echo "id title status tag(s)"
 		for post in "${posts[@]}"; do
 			id="$(basename "$post" .md)"
 			# skip drafts
 			if [ "$(header draft < "$post")" == 'false' ]; then
-				echo "${idx} $id [Published]"
+				echo "${idx} $id [Published] [$(header tags < "$post")]"
 			else
-				echo "${idx} $id [Draft]"
+				echo "${idx} $id [Draft] [$(header tags < "$post")]"
 			fi
 			((idx++))
 		done
