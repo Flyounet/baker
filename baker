@@ -307,6 +307,26 @@ post_date() {
 	fi
 }
 
+# post_rename parse the headers post to rename the post (usefull if changed the title or the date)
+post_rename() {
+	local _fname=''
+	readarray -t posts < <(find "$POST_DIR" -name '*.md' | sort -r)
+	if [ -z "${1:-}" ]; then
+		usage
+	elif [ -z "${1//[0-9]/}" ]; then
+		[[ ${1} -lt ${#posts[@]} ]] && _fname="${posts[${1}]}"
+	elif [ -f "${POST_DIR}/${1}" -o -f "${POST_DIR}/${1}.md" ]; then
+		_fname="${POST_DIR}/${1//\.md/}.md"
+	fi
+	[[ -z "${_fname}" ]] && die "This post doesn't exist"
+	_pDate="$(header date < "${_fname}")"
+	_pTitle="$(header title < "${_fname}")"
+	_nDate="$(date -u "+%FT%TZ" --date "${_pDate}" 2>/dev/null)"
+	[[ ${?} -ne 0 ]] && die "Date invalide."
+	mv "${_fname}" "${POST_DIR}/$(date -u +%Y-%m-%d --date "${_nDate}")-$(slug <<< "${_pTitle}").md" && \
+		echo "${POST_DIR}/$(date -u +%Y-%m-%d --date "${_nDate}")-$(slug <<< "${_pTitle}").md"
+}
+
 # post_toggle toggles the status of a post (either use ID or post name)
 post_toggle() {
 	local _fname=''
@@ -514,8 +534,8 @@ if [[ ${1:-} =~ ${_regex} ]]; then
 		post) __p=1; __post="${@:2}" ;;
 		list) __l=1;;
 		toggle) __t=1; __post="${@:2}" ;;
-		date) post_date "${@:2}" ;;
-		rename) post_rename "${@:2}" ;;
+		date) __d=1; __post="${@:2}" ;;
+		rename) __r=1; __post="${@:2}" ;;
 		*) usage ;;
 	esac
 else
