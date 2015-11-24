@@ -581,7 +581,7 @@ readonly TAGS_LINK; readonly TAGS_BASELINK
 
 
 if [ ${__b} -eq 1 ]; then
-	bake
+	post_bake
 elif [ ${__l} -eq 1 ]; then
 	post_list
 elif [ ${__d} -eq 1 ]; then
