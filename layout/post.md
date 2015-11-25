@@ -35,6 +35,9 @@
 	<footer id="author" class="row">
 		<section class="col-md-5">
 			<p class="post-date">Published on <time>{{ date }}</time></p>
+@if update
+			<p class="post-date">Last updated on <time>{{ update }}</time></p>
+@end
 		</section>
 		<section class="col-md-2">
 			<img alt="author-avatar" class="author-avatar pull-right" src="http://www.gravatar.com/avatar/{{ AUTHOR_EMAIL_HASH }}" />
