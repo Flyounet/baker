@@ -524,9 +524,9 @@ usage() {
 	EOF
 	exit 1
 }
+
 # checkBinaries check the script is able to run and give hints
 checkBinaries() {
-	local cmdWarn="dirname readlink"
 	local cmdErr="perl sed awk cat basename find date iconv tr dirname readlink"
 	set ${cmdErr}
 	while [ ${#} -ne 0 ]; do
