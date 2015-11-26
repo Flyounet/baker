@@ -524,7 +524,22 @@ usage() {
 	EOF
 	exit 1
 }
+# checkBinaries check the script is able to run and give hints
+checkBinaries() {
+	local cmdWarn="dirname readlink"
+	local cmdErr="perl sed awk cat basename find date iconv tr dirname readlink"
+	set ${cmdErr}
+	while [ ${#} -ne 0 ]; do
+		if ! command -v "${1:-}" &>/dev/null; then
+			echo "command not found: ${1}"
+			local rc=1
+		fi
+		shift
+	done
+	[[ ${rc:=0} -ne 0 ]] && die "At least one command is missing. Please install it before using Baker."
+}
 
+checkBinaries
 (( $# == 0 )) && usage
 
 _regex='^(post|bake|list|toggle|date|rename)$'
