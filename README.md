@@ -17,7 +17,11 @@
 
 3. Bake all posts: `./baker bake`
 
-4. Verify which post, you already cooked: `./bake list`
+4. Verify which post you already cooked: `./bake list`
+
+5. Configure your own flavour. Try it: `./bake -b -f flavour.conf`
+
+6. Know your bakery: `./baker -h`
 
 ## Template redesigned
 
