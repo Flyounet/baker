@@ -39,6 +39,9 @@ config() {
 	# categories
 	export TAGS_BASELIST="${TAGS_BASELIST:=mylife,internet,baker}"
 	export TAGS_LINK="${TAGS_LINK:=<li><a href='index_==tagNameSlugged==.html' title='jump to tag'><i class='fa fa-tag'></i>&nbsp;==tagName==</a></li>}"
+
+	# RSS
+	export RSS_SITE_URL="${RSS_SITE_URL:=http://baker.example.com/alone}"
 }
 
 #
@@ -458,6 +461,12 @@ post_bake() {
 		(( id_all++ ))
 		(( idx++ ))
 	done
+	if [ ${__x:=0} -eq 0 ]; then
+		echo "Rendering RSS" >&2
+		RSS_DATE="$(date -u +%FT%TZ)"
+		render_file "$LAYOUT_DIR/rss.md" > "$OUTPUT_DIR/rss.xml" &
+		wait
+	fi
 	echo "Rendering Index..." >&2
 	render_file "$LAYOUT_DIR/index.md" > "$OUTPUT_DIR/index.html" &
 	wait
@@ -509,7 +518,7 @@ usage() {
 	  date   [title] change the date of a post
 	  rename [title] parse the header to re-generate the filename of a post
 	### And the new one :
-	baker [-p <title>|-b [-t]|-l|-s <title|id>|-d <title|id> [-D]|-r <title|id>] [-f <filename>] [-w <path>] [-h]
+	baker [-p <title>|-b [-t][-x]|-l|-s <title|id>|-d <title|id> [-D]|-r <title|id>] [-f <filename>] [-w <path>] [-h]
 	  -b            ship all posts
 	  -d [title|id] change the date of a post
 	  -D            don't change the filename when changing date
@@ -521,6 +530,7 @@ usage() {
 	  -s [title|id] toggle the draft status of a post
 	  -t            don't generate tags
 	  -w [path]     use this path to work instead of ./
+	  -x            don't generate the RSS file
 	EOF
 	exit 1
 }
@@ -554,9 +564,9 @@ if [[ ${1:-} =~ ${_regex} ]]; then
 		*) usage ;;
 	esac
 else
-	# used      : ---b--Dd---f--Hh-------l-------p---r-s-t-----w----------------
-	# available : AaB-Cc--EeF-Gg--IiJjKkL-MmNnOoP-QqR-S-T-UuVvW-XxYyZz0123456789
-	while getopts ":d:f:p:r:s:w:bDhHlt" option; do
+	# used      : ---b--Dd---f--Hh-------l-------p---r-s-t-----w-x--------------
+	# available : AaB-Cc--EeF-Gg--IiJjKkL-MmNnOoP-QqR-S-T-UuVvW-X-YyZz0123456789
+	while getopts ":d:f:p:r:s:w:bDhHltx" option; do
 		case ${option} in
 			b) __b=1;;
 			c) __c=1;;
@@ -569,6 +579,7 @@ else
 			s) __s=1;__post="${OPTARG}";;
 			t) __t=1;;
 			w) [[ -d "${OPTARG}" ]] && __w="$( cd ${OPTARG}; pwd)/";;
+			x) __x=1;;
 			?|H|h) usage; exit 0;;
 			*) echo "Argument unknown" >&2; usage;;
 		esac
