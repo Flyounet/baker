@@ -7,7 +7,7 @@
 - [x] Draft
 - [ ] Video/Audio (ffmpeg)
 - [x] Tag
-- [ ] RSS
+- [x] RSS
 
 ## Start your first post
 
