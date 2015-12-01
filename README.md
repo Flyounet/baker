@@ -8,6 +8,7 @@
 - [ ] Video/Audio (ffmpeg)
 - [x] Tag
 - [ ] RSS
+- [ ] Atom Feed
 
 ## Start your first post
 
