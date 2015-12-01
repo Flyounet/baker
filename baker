@@ -404,6 +404,7 @@ post_bake() {
 	id_all=0
 	_allTags=''
 	time for post in "${posts[@]}"; do
+		[[ ${id_all} -eq 0 ]] && echo -e "id\t- Title\t[Tags]"
 		idx_prev=1;idx_next=1
 		id="$(basename "$post" .md)"
 		# skip drafts
@@ -450,7 +451,7 @@ post_bake() {
 			unset tags
 		fi
 		# Render the post
-		echo "$idx - $idx_next - $id [Prev:${POST_PREV}][Next:${POST_NEXT}] [Tags:${tags}]"
+		echo -e "${idx}\t- ${id}\t[${tags}]"
 		render_file "$post" > "$OUTPUT_DIR/$id.html" &
 		declare "posts_${idx}_id"="$id"
 		export_headers "$post" "posts_${idx}_"
@@ -517,7 +518,7 @@ usage() {
 	  -h            print help (you currently read it)
 	  -l            list all posts with state
 	  -p "[title]"  draft a post
-	  -r [title|id] toggle the draft status of a post
+	  -r [title|id] parse a post content to re-generate the filename
 	  -s [title|id] toggle the draft status of a post
 	  -t            don't generate tags
 	  -w [path]     use this path to work instead of ./
@@ -527,7 +528,7 @@ usage() {
 
 # checkBinaries check the script is able to run and give hints
 checkBinaries() {
-	local cmdErr="perl sed awk cat basename find date iconv tr dirname readlink"
+	local cmdErr="perl sed awk cat basename find date iconv tr dirname readlink column"
 	set ${cmdErr}
 	while [ ${#} -ne 0 ]; do
 		if ! command -v "${1:-}" &>/dev/null; then
