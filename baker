@@ -531,7 +531,7 @@ usage() {
 	  -s [title|id] toggle the draft status of a post
 	  -t            don't generate tags
 	  -w [path]     use this path to work instead of ./
-	  -x            don't generate the RSS file
+	  -x            don't generate the RSS feed file
 	EOF
 	exit 1
 }
