@@ -5,9 +5,17 @@
 #
 config() {
 	echo "Reading Configuration..." >&2
-	[[ -f "$(readlink -m "${1:-}")" ]] && . "${1}"
 	[[ "${__w:-}" ]] && echo "Forced working dir is ${__w}"
-
+	# Normalement il vaudrait mieux s'occuper de __w pluis seulement après regarder si 1 est relatif aboslu ou juste un fichier
+	# Et ensuite on s'occupe du BAKER_CONFIG
+	if [ -f "$(readlink -m "${1:-}")" ]; then
+		. "${1}"
+	elif [ -z "${1%/*}" -a ! -z "${1}" -a -f "${__w:-}${1}" ]; then
+		. "${__w:-}${1}"
+	fi
+		
+	#[[ -f "$(readlink -m "${1:-}")" ]] && . "${1}"
+	#[[ -f "${__w:-}${BAKER_CONFIG}" -a 
 	# POST_DIR stores all post markdown files
 	export POST_DIR="${POST_DIR:=${__w:=./}post}"
 
@@ -47,6 +55,9 @@ config() {
 #
 # helper
 #
+
+# default filename for Baker config file
+readonly BAKER_CONFIG="${BAKER_CONFIG:=baker.conf}"
 
 # absolute dir path of this script
 readonly SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
@@ -526,6 +537,7 @@ usage() {
 	  -f [file]     get the configuration from a file
 	  -h            print help (you currently read it)
 	  -l            list all posts with state
+	  -n            No default config file loaded BAKER_CONFIG
 	  -p "[title]"  draft a post
 	  -r [title|id] parse a post content to re-generate the filename
 	  -s [title|id] toggle the draft status of a post
@@ -565,9 +577,9 @@ if [[ ${1:-} =~ ${_regex} ]]; then
 		*) usage ;;
 	esac
 else
-	# used      : ---b--Dd---f--Hh-------l-------p---r-s-t-----w-x--------------
-	# available : AaB-Cc--EeF-Gg--IiJjKkL-MmNnOoP-QqR-S-T-UuVvW-X-YyZz0123456789
-	while getopts ":d:f:p:r:s:w:bDhHltx" option; do
+	# used      : ---b--Dd---f--Hh-------l---n---p---r-s-t-----w-x--------------
+	# available : AaB-Cc--EeF-Gg--IiJjKkL-MmN-OoP-QqR-S-T-UuVvW-X-YyZz0123456789
+	while getopts ":d:f:p:r:s:w:bDhHlntx" option; do
 		case ${option} in
 			b) __b=1;;
 			c) __c=1;;
@@ -575,6 +587,7 @@ else
 			D) __D=1;;
 			l) __l=1;;
 			f) __f="${OPTARG}";;
+			n) __n=1;;
 			p) __p=1;__post="${OPTARG}";;
 			r) __r=1;__post="${OPTARG}";;
 			s) __s=1;__post="${OPTARG}";;
