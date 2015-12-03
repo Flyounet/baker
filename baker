@@ -467,6 +467,9 @@ post_bake() {
 		echo -e "${idx}\t- ${id}\t[${tags}]"
 		render_file "$post" > "$OUTPUT_DIR/$id.html" &
 		declare "posts_${idx}_id"="$id"
+		if [ ${__x:=0} -eq 0 ]; then # RSS datetime has to be RFC 822 compliant
+			declare -g "posts_${idx}_rssdate"="$(date -R --date "$(header date < "$post")")"
+		fi
 		export_headers "$post" "posts_${idx}_"
 		POST_PREV="$id.html"
 		(( id_all++ ))
@@ -474,7 +477,7 @@ post_bake() {
 	done
 	if [ ${__x:=0} -eq 0 ]; then
 		echo "Rendering RSS" >&2
-		RSS_DATE="$(date -u +%FT%TZ)"
+		RSS_DATE="$(date -R)"
 		render_file "$LAYOUT_DIR/rss.md" > "$OUTPUT_DIR/rss.xml" &
 		wait
 	fi

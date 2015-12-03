@@ -5,17 +5,18 @@
 	<channel>
 		<generator>Baker</generator>
 		<docs>http://blogs.law.harvard.edu/tech/rss</docs>
-		<title>{{ SITE_NAME }}</title>
+		<title><![CDATA[ {{ SITE_NAME }} ]]></title>
 		<link>{{ RSS_SITE_URL }}</link>
-		<description>{{ SITE_DESC }}</description>
+		<description><![CDATA[ {{ SITE_DESC }} ]]></description>
 		<pubDate>{{ RSS_DATE }}</pubDate>
-	</channel>
 @each posts
-	<item>
-		<title>{{ title }}</title>
-		<link>{{ RSS_SITE_URL }}/{{ id }}.html</link>
-		<description>{{ summary }}</description>
-		<pubDate>{{ date }}</pubDate>
-	</item>
+		<item>
+			<title><![CDATA[ {{ title }} ]]></title>
+			<link>{{ RSS_SITE_URL }}/{{ id }}.html</link>
+			<guid>{{ RSS_SITE_URL }}/{{ id }}.html</guid>
+			<description><![CDATA[ {{ summary }} ]]></description>
+			<pubDate>{{ rssdate }}</pubDate>
+		</item>
 @end
+	</channel>
 </rss>
