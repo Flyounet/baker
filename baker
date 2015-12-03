@@ -5,31 +5,30 @@
 #
 config() {
 	echo "Reading Configuration..." >&2
-	[[ "${__w:-}" ]] && echo "Forced working dir is ${__w}"
-	# Normalement il vaudrait mieux s'occuper de __w pluis seulement après regarder si 1 est relatif aboslu ou juste un fichier
-	# Et ensuite on s'occupe du BAKER_CONFIG
+	[[ "${__w:=./}" != './' ]] && echo "Working dir changed to ${__w}"
+	[[ "${__w: -1}" != '/' ]] && __w="${__w//\/\//\/}/"
+	# If a config file is given, we take it first, or look for a default config file
 	if [ -f "$(readlink -m "${1:-}")" ]; then
 		. "${1}"
-	elif [ -z "${1%/*}" -a ! -z "${1}" -a -f "${__w:-}${1}" ]; then
-		. "${__w:-}${1}"
+	elif [ ${__n:=0} -eq 0 -a -f "${__w}${DEFAULT_CONFIG_FILENAME}" ]; then
+		. "${__w}${DEFAULT_CONFIG_FILENAME}"
+		echo "Default config file loaded ${__w}${DEFAULT_CONFIG_FILENAME}"
 	fi
 		
-	#[[ -f "$(readlink -m "${1:-}")" ]] && . "${1}"
-	#[[ -f "${__w:-}${BAKER_CONFIG}" -a 
 	# POST_DIR stores all post markdown files
-	export POST_DIR="${POST_DIR:=${__w:=./}post}"
+	export POST_DIR="${POST_DIR:=${__w}post}"
 
 	# OUTPUT_DIR stores all compiled html
-	export OUTPUT_DIR="${OUTPUT_DIR:=${__w:=./}out}"
+	export OUTPUT_DIR="${OUTPUT_DIR:=${__w}out}"
 
 	# DRAFT_DIR stores all compiled html
-	export DRAFT_DIR="${DRAFT_DIR:=${__w:=./}draft}"
+	export DRAFT_DIR="${DRAFT_DIR:=${__w}draft}"
 
 	# LAYOUT_DIR stores all layout markdown files
-	export LAYOUT_DIR="${LAYOUT_DIR:=${__w:=./}layout}"
+	export LAYOUT_DIR="${LAYOUT_DIR:=${__w}layout}"
 
 	# PUBLIC_DIR stores css and static images
-	export PUBLIC_DIR="${PUBLIC_DIR:=${__w:=./}public}"
+	export PUBLIC_DIR="${PUBLIC_DIR:=${__w}public}"
 
 	# site
 	export SITE_NAME="${SITE_NAME:=a baker blog}"
@@ -56,8 +55,8 @@ config() {
 # helper
 #
 
-# default filename for Baker config file
-readonly BAKER_CONFIG="${BAKER_CONFIG:=baker.conf}"
+# default filename for Baker config file (just the filename no path)
+readonly DEFAULT_CONFIG_FILENAME="${DEFAULT_CONFIG_FILENAME:=baker.conf}"
 
 # absolute dir path of this script
 readonly SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
@@ -554,7 +553,7 @@ checkBinaries() {
 	set ${cmdErr}
 	while [ ${#} -ne 0 ]; do
 		if ! command -v "${1:-}" &>/dev/null; then
-			echo "command not found: ${1}"
+			echo "command not found: ${1}" >&2
 			local rc=1
 		fi
 		shift
