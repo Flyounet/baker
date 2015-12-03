@@ -6,9 +6,10 @@
 - [x] Markdown
 - [x] Draft
 - [ ] Video/Audio (ffmpeg)
-- [x] Tag
-- [x] RSS
+- [x] Tags
+- [x] RSS (Feed valid [FeedValidator](http://feedvalidator.org/))
 - [ ] Atom Feed
+- [x] Easy Configuration file
 
 ## Start your first post
 
