@@ -5,23 +5,30 @@
 #
 config() {
 	echo "Reading Configuration..." >&2
-	[[ -f "$(readlink -m "${1:-}")" ]] && . "${1}"
-	[[ "${__w:-}" ]] && echo "Forced working dir is ${__w}"
-
+	[[ "${__w:=./}" != './' ]] && echo "Working dir changed to ${__w}"
+	[[ "${__w: -1}" != '/' ]] && __w="${__w//\/\//\/}/"
+	# If a config file is given, we take it first, or look for a default config file
+	if [ -f "$(readlink -m "${1:-}")" ]; then
+		. "${1}"
+	elif [ ${__n:=0} -eq 0 -a -f "${__w}${DEFAULT_CONFIG_FILENAME}" ]; then
+		. "${__w}${DEFAULT_CONFIG_FILENAME}"
+		echo "Default config file loaded ${__w}${DEFAULT_CONFIG_FILENAME}"
+	fi
+		
 	# POST_DIR stores all post markdown files
-	export POST_DIR="${POST_DIR:=${__w:=./}post}"
+	export POST_DIR="${POST_DIR:=${__w}post}"
 
 	# OUTPUT_DIR stores all compiled html
-	export OUTPUT_DIR="${OUTPUT_DIR:=${__w:=./}out}"
+	export OUTPUT_DIR="${OUTPUT_DIR:=${__w}out}"
 
 	# DRAFT_DIR stores all compiled html
-	export DRAFT_DIR="${DRAFT_DIR:=${__w:=./}draft}"
+	export DRAFT_DIR="${DRAFT_DIR:=${__w}draft}"
 
 	# LAYOUT_DIR stores all layout markdown files
-	export LAYOUT_DIR="${LAYOUT_DIR:=${__w:=./}layout}"
+	export LAYOUT_DIR="${LAYOUT_DIR:=${__w}layout}"
 
 	# PUBLIC_DIR stores css and static images
-	export PUBLIC_DIR="${PUBLIC_DIR:=${__w:=./}public}"
+	export PUBLIC_DIR="${PUBLIC_DIR:=${__w}public}"
 
 	# site
 	export SITE_NAME="${SITE_NAME:=a baker blog}"
@@ -47,6 +54,9 @@ config() {
 #
 # helper
 #
+
+# default filename for Baker config file (just the filename no path)
+readonly DEFAULT_CONFIG_FILENAME="${DEFAULT_CONFIG_FILENAME:=baker.conf}"
 
 # absolute dir path of this script
 readonly SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
@@ -526,6 +536,7 @@ usage() {
 	  -f [file]     get the configuration from a file
 	  -h            print help (you currently read it)
 	  -l            list all posts with state
+	  -n            No default config file loaded BAKER_CONFIG
 	  -p "[title]"  draft a post
 	  -r [title|id] parse a post content to re-generate the filename
 	  -s [title|id] toggle the draft status of a post
@@ -542,7 +553,7 @@ checkBinaries() {
 	set ${cmdErr}
 	while [ ${#} -ne 0 ]; do
 		if ! command -v "${1:-}" &>/dev/null; then
-			echo "command not found: ${1}"
+			echo "command not found: ${1}" >&2
 			local rc=1
 		fi
 		shift
@@ -565,9 +576,9 @@ if [[ ${1:-} =~ ${_regex} ]]; then
 		*) usage ;;
 	esac
 else
-	# used      : ---b--Dd---f--Hh-------l-------p---r-s-t-----w-x--------------
-	# available : AaB-Cc--EeF-Gg--IiJjKkL-MmNnOoP-QqR-S-T-UuVvW-X-YyZz0123456789
-	while getopts ":d:f:p:r:s:w:bDhHltx" option; do
+	# used      : ---b--Dd---f--Hh-------l---n---p---r-s-t-----w-x--------------
+	# available : AaB-Cc--EeF-Gg--IiJjKkL-MmN-OoP-QqR-S-T-UuVvW-X-YyZz0123456789
+	while getopts ":d:f:p:r:s:w:bDhHlntx" option; do
 		case ${option} in
 			b) __b=1;;
 			c) __c=1;;
@@ -575,6 +586,7 @@ else
 			D) __D=1;;
 			l) __l=1;;
 			f) __f="${OPTARG}";;
+			n) __n=1;;
 			p) __p=1;__post="${OPTARG}";;
 			r) __r=1;__post="${OPTARG}";;
 			s) __s=1;__post="${OPTARG}";;
