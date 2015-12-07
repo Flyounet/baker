@@ -131,6 +131,12 @@ Here are some variables you could change (in fact all could be changed, it will 
 * `LAYOUT_DIR` : Where to store your layout markodown files
 * `PUBLIC_DIR`: Where to store your static content (css, images, js, ...)
 
+* `SITE_NAME` : The site title
+* `SITE_DESC` : The site description
+* `DISQUS` : The username of your Disqus account (check the layout)
+
+* `AUTHOR_NAME` : 
+
         # site
         export SITE_NAME="${SITE_NAME:=a baker blog}"
         export SITE_DESC="${SITE_DESC:=written in bash}"
