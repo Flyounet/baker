@@ -42,6 +42,10 @@ config() {
 
 	# RSS
 	export RSS_SITE_URL="${RSS_SITE_URL:=http://baker.example.com/alone}"
+
+	# Summary Print, values are all, none, user
+	# when using user the sumprint header tells baker about adding or not the summary
+	export PRINT_ALL_SUMMARY="${PRINT_ALL_SUMMARY:=user}"
 }
 
 #
@@ -452,6 +456,12 @@ post_bake() {
 		else
 			unset TAGSLIST
 			unset tags
+		fi
+		# Manage summary
+		if [ "${PRINT_ALL_SUMMARY}" = 'all' -o "$(header sumprint < "${post}")" = 'true' -a "${PRINT_ALL_SUMMARY}" = 'user' ]; then
+			export PRINTSUMMARY=true
+		else
+			unset PRINTSUMMARY
 		fi
 		# Render the post
 		echo -e "${idx}\t- ${id}\t[${tags}]"

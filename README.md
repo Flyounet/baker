@@ -105,6 +105,56 @@ done
 @end
 ```
 
+## Configuration
+
+### Headers in post
+
+The headers in post indicate how Baker has to bake :
+
+* `title: `: The title of post in the index (and in the post). Also used to generate the filename. 
+* `date: `:  The date of the post in the form `2015-11-20T11:06:07Z` (Created by Baker when generating a new post).
+* `update: `: The date of the last update in the post (not automatique, same form as `date: `).
+* `tags: `: The list of tags (comma separated) for the post.
+* `layout: `: The name of layout used to generate the post. The name should have not contain the `.md` at the end.
+* `draft: `: When cooking your post, Baker put your post in the `draft` directory if set to true, in `out` directory either.
+* `summary: `: The summary is printed in the index (and could be added in the post).
+* `sumprint: `: If set to true, the summary will be added in the beginning of the post (depends on your layout).
+
+### Variables in Baker
+
+Baker is able to load a config file either by itself (if your config file is named `baker.conf`) or by using the `-f filename`.  
+Here are some variables you could change (in fact all could be changed, it will depend on your needs) :
+
+*  ̀POST_DIR` : where to store your markdown files
+* `OUTPUT_DIR` : Where to store your compiled html files
+* `DRAFT_DIR` : Where to store your compiled html draft files
+* `LAYOUT_DIR` : Where to store your layout markodown files
+* `PUBLIC_DIR`: Where to store your static content (css, images, js, ...)
+
+        # site
+        export SITE_NAME="${SITE_NAME:=a baker blog}"
+        export SITE_DESC="${SITE_DESC:=written in bash}"
+        export DISQUS="${DISQUS:=bakerbash}"
+
+        # author
+        export AUTHOR_NAME="${AUTHOR_NAME:=baker}"
+        export AUTHOR_DESC="${AUTHOR_DESC:=a very-experienced bread baker, who also loves planting trees.}"
+        export AUTHOR_EMAIL="${AUTHOR_EMAIL:=email@example.org}"
+        export AUTHOR_EMAIL_HASH="${AUTHOR_EMAIL_HASH:=$(md5sum <<< "$AUTHOR_NAME" | awk '{ print $1 }')}"
+        export AUTHOR_TWITTER="${AUTHOR_TWITTER:=twitter}"
+        export AUTHOR_GITHUB="${AUTHOR_GITHUB:=github}"
+
+        # categories
+        export TAGS_BASELIST="${TAGS_BASELIST:=mylife,internet,baker}"
+        export TAGS_LINK="${TAGS_LINK:=<li><a href='index_==tagNameSlugged==.html' title='jump to tag'><i class='fa fa-tag'></i>&nbsp;==tagName==</a></li>}"
+
+        # RSS
+        export RSS_SITE_URL="${RSS_SITE_URL:=http://baker.example.com/alone}"
+
+        # Summary Print, values are all, none, user
+        # when using user the sumprint header tells baker about adding or not the summary
+        export PRINT_ALL_SUMMARY="${PRINT_ALL_SUMMARY:=user}"
+
 ## Markdown
 
 It currently uses the implementation from [Daring Fireball](http://daringfireball.net/projects/markdown/).
