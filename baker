@@ -539,6 +539,7 @@ usage() {
 	  -p "[title]"  draft a post
 	  -r [title|id] parse a post content to re-generate the filename
 	  -s [title|id] toggle the draft status of a post
+	  -S <all|none|user> Override the PRINT_ALL_SUMMARY variable
 	  -t            don't generate tags
 	  -w [path]     use this path to work instead of ./
 	  -x            don't generate the RSS file
@@ -575,9 +576,9 @@ if [[ ${1:-} =~ ${_regex} ]]; then
 		*) usage ;;
 	esac
 else
-	# used      : ---b--Dd---f--Hh-------l-------p---r-s-t-----w-x--------------
-	# available : AaB-Cc--EeF-Gg--IiJjKkL-MmNnOoP-QqR-S-T-UuVvW-X-YyZz0123456789
-	while getopts ":d:f:p:r:s:w:bDhHltx" option; do
+	# used      : ---b--Dd---f--Hh-------l-------p---rSs-t-----w-x--------------
+	# available : AaB-Cc--EeF-Gg--IiJjKkL-MmNnOoP-QqR---T-UuVvW-X-YyZz0123456789
+	while getopts ":d:f:p:r:s:S:w:bDhHltx" option; do
 		case ${option} in
 			b) __b=1;;
 			c) __c=1;;
@@ -588,6 +589,7 @@ else
 			p) __p=1;__post="${OPTARG}";;
 			r) __r=1;__post="${OPTARG}";;
 			s) __s=1;__post="${OPTARG}";;
+			S) [[ "${OPTARG,,}" =~ ^(user|all|none)$ ]] || die "Argument '${OPTARG}' unknown."; export PRINT_ALL_SUMMARY="${OPTARG,,}";;
 			t) __t=1;;
 			w) [[ -d "${OPTARG}" ]] && __w="$( cd ${OPTARG}; pwd)/";;
 			x) __x=1;;

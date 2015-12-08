@@ -135,31 +135,17 @@ Here are some variables you could change (in fact all could be changed, it will 
 * `SITE_DESC` : The site description
 * `DISQUS` : The username of your Disqus account (check the layout)
 
-* `AUTHOR_NAME` : 
+* `AUTHOR_NAME` : Your name
+* `AUTHOR_DESC` : Speak about yourself
+* `AUTHOR_EMAIL` : Your email
+* `AUTHOR_EMAIL_HASH` : Based on your `AUTHOR_NAME` to make your avatar id
+* `AUTHOR_TWITTER`: Your Twitter name account
+* `AUTHOR_GITHUB` : Your Github name account
 
-        # site
-        export SITE_NAME="${SITE_NAME:=a baker blog}"
-        export SITE_DESC="${SITE_DESC:=written in bash}"
-        export DISQUS="${DISQUS:=bakerbash}"
-
-        # author
-        export AUTHOR_NAME="${AUTHOR_NAME:=baker}"
-        export AUTHOR_DESC="${AUTHOR_DESC:=a very-experienced bread baker, who also loves planting trees.}"
-        export AUTHOR_EMAIL="${AUTHOR_EMAIL:=email@example.org}"
-        export AUTHOR_EMAIL_HASH="${AUTHOR_EMAIL_HASH:=$(md5sum <<< "$AUTHOR_NAME" | awk '{ print $1 }')}"
-        export AUTHOR_TWITTER="${AUTHOR_TWITTER:=twitter}"
-        export AUTHOR_GITHUB="${AUTHOR_GITHUB:=github}"
-
-        # categories
-        export TAGS_BASELIST="${TAGS_BASELIST:=mylife,internet,baker}"
-        export TAGS_LINK="${TAGS_LINK:=<li><a href='index_==tagNameSlugged==.html' title='jump to tag'><i class='fa fa-tag'></i>&nbsp;==tagName==</a></li>}"
-
-        # RSS
-        export RSS_SITE_URL="${RSS_SITE_URL:=http://baker.example.com/alone}"
-
-        # Summary Print, values are all, none, user
-        # when using user the sumprint header tells baker about adding or not the summary
-        export PRINT_ALL_SUMMARY="${PRINT_ALL_SUMMARY:=user}"
+* `TAGS_BASELIST` : When creating a post this Tags list is autmoatically added
+* `TAGS_LINK`: The html (based on your layout) to generate tags list. `==tagNameSlugged==` will be replaced by the tga name slugged. `==tagName==` will be replaced by the tag name.
+* `RSS_SITE_URL` : Inform readers where to find your posts when they read the RSS Feed
+* `PRINT_ALL_SUMMARY`: Add the summary of your post inside your post. Use `none`, `all` or `user`. `all` and `none` override the `sumprint` header.
 
 ## Markdown
 
