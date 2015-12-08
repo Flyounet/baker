@@ -35,6 +35,7 @@
 
 	<footer class="text-center">
 		A <a href="http://github.com/taylorchu/baker">baker</a> blog.
+		<span class="text-center"><i class="fa-li fa fa-rss"></i><a href="rss.xml">RSS</a></span>
 	</footer>
 </main>
 
