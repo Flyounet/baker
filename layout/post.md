@@ -21,6 +21,10 @@
 	</header>
 
 	<article>
+@if PRINTSUMMARY
+		{{ summary }}
+		<hr class="summary" />
+@end
 		{{ content }}
 	</article>
 

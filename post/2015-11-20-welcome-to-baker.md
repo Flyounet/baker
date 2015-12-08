@@ -5,6 +5,7 @@ update: 2015-11-25T17:29:09Z
 tags: baker
 layout: post
 draft: false
+sumprint: true
 summary: This is your second post.
 ---
 
