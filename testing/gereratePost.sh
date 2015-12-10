@@ -20,6 +20,7 @@ _path="$( cd "$(dirname "${0}")"; pwd )"
 readarray -t posts < <(find "${_path}" -name '*.md')
 nbpost=${#posts[@]}
 readarray -t cats < <(for i in {1..5}; do echo "cat_${i}"; done)
+nbcat=${#cats[@]}
 
 # pseudo initialisation
 for ((i=0;i<$RANDOM;i++)); do
@@ -27,18 +28,47 @@ for ((i=0;i<$RANDOM;i++)); do
 done
 # Some cleaning
 cd "${_path}" && rm -rf "./posts" && mkdir "./posts"
-cd "${_path}" && rm -rf "./draft" && mkdir "./draft"
 uts="$(date '+%s')"
 echo "[Info] Nb Posts : ${nbpost} - Nb Tags : ${#cats[@]} - Nb posts to generate : ${1}"
 all=0
 while [ ${nbpub:=0} -le ${1} ]; do
 	# pickup a post
-	f="$( basename "${posts[$((RANDOM%${nbpost}))]}" )"
+	f="$( basename "${posts[$((RANDOM%${nbpost}))]}" )"; nf="${f}"
 	if [[ "${f}" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}-.*$ ]]; then
-		echo "file dated"
+		nf="${f//[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]-/}"
 	fi
-	echo $f
-	(( nbpub++ ))
+	nf="$(date -u +%Y-%m-%d --date "- ${all} days")-${nf}" 
+	if [  $((RANDOM%6 )) -ne 3 ]; then
+		nbtags=$((RANDOM%${#cats[@]}))
+		if [ ${nbtags} -gt 0 ]; then
+			tts=''; ts=''
+			while [ ${nbtags} -ne 0 ]; do
+				ts="${cats[$((RANDOM%${nbcat}))]}"
+				if [ "${tts//$ts/}" = "${tts:=}" ]; then
+					[[ ! -z "${tts}" ]] && tts="${tts},"
+					tts="${tts}${ts}"
+				else
+					((nbtags++))
+				fi
+				((nbtags--))
+			done
+		fi
+	fi
+	if [  $((RANDOM%3 )) -eq 1 ]; then
+		sed -e 's;^[[:space:]]*draft:[[:space:]]*(false|true)[[:space:]]*$;draft: true;g'  "${f}" > "posts/${nf}"
+	else
+		sed -e 's;^[[:space:]]*draft:[[:space:]]*(false|true)[[:space:]]*$;draft: false;g'  "${f}" > "posts/${nf}"
+		(( nbpub++ ))
+	fi
+	sed -i -e 's;^[[:space:]]*tags:[[:space:]]*.*$;tags: '"${tts}"';g' "posts/${nf}"
+	echo " $f -- $nf"
+	echo "draft: ${dr} -- cats:  ${tts}"
+	if [ $((RANDOM%5 )) -ne 0 ]; then
+		(( all++ ))
+	fi
+	if [ $((RANDOM%50 )) -eq 0 ]; then
+		(( all++ ))
+	fi
 done
 echo $(( RANDOM%${#cats[@]} ))
 
