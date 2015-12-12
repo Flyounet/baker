@@ -415,14 +415,15 @@ post_bake() {
 	idx=0
 	id_all=0
 	_allTags=''
-	time for post in "${posts[@]}"; do
+	for post in "${posts[@]}"; do
 		[[ ${id_all} -eq 0 ]] && echo -e "id\t- Title\t[Tags]"
 		idx_prev=1;idx_next=1
 		id="$(basename "$post" .md)"
 		# skip drafts
 		if [ "$(header draft < "$post")" != false ]; then
 			(( id_all++ ))
-			POST_PREV='index.html';POST_NEXT='index.html'; render_file "$post" > "$DRAFT_DIR/$id.html"; continue;
+			POST_PREV='index.html';POST_NEXT='index.html'; render_file "$post" > "$DRAFT_DIR/$id.html" &
+			 continue
 		fi
 		if [ ${idx} -eq 0 ]; then # It's the first post, so the newer one is index
 			id_prev=0
@@ -523,6 +524,7 @@ post_bake() {
 			wait
 		done <<< "$(echo -e "${_allTags//,/\\n}")"
 	fi
+	echo 'Bakered !' >&2
 }
 
 # die print message to stderr and exit
