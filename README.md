@@ -8,7 +8,7 @@
 - [ ] Video/Audio (ffmpeg)
 - [x] Tag
 - [x] RSS
-- [ ] Atom Feed
+- [x] Atom Feed
 
 ## Start your first post
 
@@ -125,7 +125,7 @@ The headers in post indicate how Baker has to bake :
 Baker is able to load a config file either by itself (if your config file is named `baker.conf`) or by using the `-f filename`.  
 Here are some variables you could change (in fact all could be changed, it will depend on your needs) :
 
-*  ̀POST_DIR` : where to store your markdown files
+* `POST_DIR` : where to store your markdown files
 * `OUTPUT_DIR` : Where to store your compiled html files
 * `DRAFT_DIR` : Where to store your compiled html draft files
 * `LAYOUT_DIR` : Where to store your layout markodown files
