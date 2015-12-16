@@ -460,7 +460,7 @@ post_bake() {
 		[[ -z "${POST_NEXT:=}" ]] && POST_NEXT='index.md'
 		POST_NEXT="${POST_NEXT%*.md}.html"
 		# look for the tags
-		if [ ${__c:=0} -eq 0 ]; then # When implemented the -c will avoid tags generation
+		if [ ${__t:=0} -eq 0 ]; then # When implemented the -c will avoid tags generation
 			local _tag=''; TAGSLIST=''
 			tags="$(header tags < "$post")"
 			if [ ! -z "${tags}" ]; then
@@ -513,7 +513,7 @@ post_bake() {
 	render_file "$LAYOUT_DIR/index.md" > "$OUTPUT_DIR/index.html" &
 	wait
 	# Generate the indexes for each tags
-	if [ ${__c:=0} -eq 0 ]; then
+	if [ ${__t:=0} -eq 0 ]; then
 		echo "Rendering Index for categories..." >&2
 		while read _tagIdx; do
 			# It's really important to unset all posts variables
@@ -615,7 +615,6 @@ else
 	while getopts ":d:f:p:r:s:S:w:bDhHlntxX" option; do
 		case ${option} in
 			b) __b=1;;
-			c) __c=1;;
 			d) __d=1;__post="${OPTARG}";;
 			D) __D=1;;
 			l) __l=1;;

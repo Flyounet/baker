@@ -12,11 +12,10 @@ POUET
 	exit 1
 }
 
-[[ ! -f ../baker ]] && die "I can't only work from inside the testing subdirectory, type 'cd $(cd "$(basename "$0")"; pwd )' and aexecuteme again"
+[[ ! -f ../baker ]] && die "I can't only work from inside the testing subdirectory, type 'cd $(cd "$(basename "$0")"; pwd )' and execute me again"
 
 uts_deb="$(date '+%s')"
-#../baker -f ./baker.conf -b 2>&1 | while read line; do
-../baker -f ./baker.conf -b 2>&1 | while read line; do
+../baker -b ${@} 2>&1 | while read line; do
 	if [[ "${line,,}" =~ ^rendering[[:space:]]posts.*$ ]]; then
 		uts_render="$(date '+%s')"
 		nb=0
