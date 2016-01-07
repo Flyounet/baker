@@ -261,10 +261,7 @@ render() {
 render_file_case() {
 	case "$1" in
 	"$POST_DIR"/*)
-		[[ -z "${MkDown:=}" ]] && export MkDown="$(awk '/^BINARY MkDown$/ { c++; next } c == 1' baker | base64 -d | gzip -dc)" && \
-		[[ "$(md5sum -b <<< "${MkDown}" | cut -d ' ' -f1)" != 'c1609b303b7fe654435380a168d78acf' ]] && die 'Embedded Markdown is corrupted !'
 		perl -e "${MkDown}"
-#		"$SCRIPT_DIR/Markdown.pl"
 		;;
 	"$LAYOUT_DIR"/*)
 		render
@@ -410,6 +407,9 @@ post_post() {
 
 # post_bake it's where the magic start
 post_bake() {
+	[[ -z "${MkDown:=}" ]] && export MkDown="$(awk '/^BINARY MkDown$/ { c++; next } c == 1' "$(command -v "${0}")" | base64 -d | gzip -dc)" && \
+	[[ "$(md5sum -b <<< "${MkDown}" | cut -d ' ' -f1)" != 'c1609b303b7fe654435380a168d78acf' ]] && die 'Embedded Markdown is corrupted !'
+
 	rm -rf "$DRAFT_DIR" "$OUTPUT_DIR"
 	mkdir -p "$DRAFT_DIR" "$OUTPUT_DIR"
 
