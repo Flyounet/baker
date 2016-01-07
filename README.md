@@ -6,8 +6,10 @@
 - [x] Markdown
 - [x] Draft
 - [ ] Video/Audio (ffmpeg)
-- [x] Tag
-- [ ] RSS
+- [x] Tags
+- [x] RSS feed (Feed valid [FeedValidator](http://feedvalidator.org/))
+- [x] Atom feed (Feed valid [FeedValidator](http://feedvalidator.org/))
+- [x] Easy Configuration file
 
 ## Start your first post
 
@@ -103,6 +105,48 @@ done
 
 @end
 ```
+
+## Configuration
+
+### Headers in post
+
+The headers in post indicate how Baker has to bake :
+
+* `title: `: The title of post in the index (and in the post). Also used to generate the filename. 
+* `date: `:  The date of the post in the form `2015-11-20T11:06:07Z` (Created by Baker when generating a new post).
+* `update: `: The date of the last update in the post (not automatique, same form as `date: `).
+* `tags: `: The list of tags (comma separated) for the post.
+* `layout: `: The name of layout used to generate the post. The name should have not contain the `.md` at the end.
+* `draft: `: When cooking your post, Baker put your post in the `draft` directory if set to true, in `out` directory either.
+* `summary: `: The summary is printed in the index (and could be added in the post).
+* `sumprint: `: If set to true, the summary will be added in the beginning of the post (depends on your layout).
+
+### Variables in Baker
+
+Baker is able to load a config file either by itself (if your config file is named `baker.conf`) or by using the `-f filename`.  
+Here are some variables you could change (in fact all could be changed, it will depend on your needs) :
+
+* `POST_DIR` : where to store your markdown files
+* `OUTPUT_DIR` : Where to store your compiled html files
+* `DRAFT_DIR` : Where to store your compiled html draft files
+* `LAYOUT_DIR` : Where to store your layout markodown files
+* `PUBLIC_DIR`: Where to store your static content (css, images, js, ...)
+
+* `SITE_NAME` : The site title
+* `SITE_DESC` : The site description
+* `DISQUS` : The username of your Disqus account (check the layout)
+
+* `AUTHOR_NAME` : Your name
+* `AUTHOR_DESC` : Speak about yourself
+* `AUTHOR_EMAIL` : Your email
+* `AUTHOR_EMAIL_HASH` : Based on your `AUTHOR_NAME` to make your avatar id
+* `AUTHOR_TWITTER`: Your Twitter name account
+* `AUTHOR_GITHUB` : Your Github name account
+
+* `TAGS_BASELIST` : When creating a post this Tags list is autmoatically added
+* `TAGS_LINK`: The html (based on your layout) to generate tags list. `==tagNameSlugged==` will be replaced by the tag name slugged. `==tagName==` will be replaced by the tag name.
+* `RSS_SITE_URL` : Inform readers where to find your posts when they read the RSS Feed
+* `PRINT_ALL_SUMMARY`: Add the summary of your post inside your post. Use `none`, `all` or `user`. `all` and `none` override the `sumprint` header.
 
 ## Markdown
 

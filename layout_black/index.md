@@ -27,7 +27,13 @@
 
 	<footer id="author" class="row">
 		<section class="col-md-5">
-			<span class="text-center">Page générée par une version modifiée de <a href="http://github.com/taylorchu/baker">baker</a>.</span>
+			<span class="text-center">Page générée par une version <a href="http://github.com/Flyounet/baker">modifiée</a> de <a href="http://github.com/taylorchu/baker">baker</a>.</span>
+@if RSS_DATE
+			<span class="text-center"><i class="fa-li fa fa-rss"></i><a href="rss.xml">RSS</a></span>
+@end
+@if ATOM_DATE
+			<span class="text-center"><i class="fa-li fa fa-rss"></i><a href="atom.xml">Atom</a></span>
+@end
 		</section>
 		<section class="col-md-2">
 @include contact

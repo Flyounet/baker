@@ -35,6 +35,12 @@
 
 	<footer class="text-center">
 		A <a href="http://github.com/taylorchu/baker">baker</a> blog.
+@if RSS_DATE
+		<span class="text-center"><i class="fa-li fa fa-rss"></i><a href="rss.xml">RSS</a></span>
+@end
+@if ATOM_DATE
+		<span class="text-center"><i class="fa-li fa fa-rss"></i><a href="atom.xml">Atom</a></span>
+@end
 	</footer>
 </main>
 
