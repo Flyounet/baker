@@ -397,7 +397,8 @@ post_post() {
 	tags: ${TAGS_BASELIST}
 	layout: post
 	draft: true
-	summary:
+	sumprint: 
+	summary: 
 	---
 	EOF
 
