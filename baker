@@ -75,7 +75,7 @@ headers() {
 
 # header prints a specific header value
 header() {
-	headers | grep "^$1: " | cut -d ' ' -f 2-
+	headers | sed -e '/^[[:space:]]*'"${1}"'[[:space:]]*:/!d;s/^[[:space:]]*'"${1}"'[[:space:]]*:[[:space:]]*\(.*\)/\1/g'
 }
 
 # body prints the body of a markdown file
