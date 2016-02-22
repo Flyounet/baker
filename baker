@@ -1,5 +1,7 @@
 #!/bin/bash
 
+VERSION='1.1.0'
+
 #
 # config
 #
@@ -564,7 +566,7 @@ usage() {
 	  date   [title] change the date of a post
 	  rename [title] parse the header to re-generate the filename of a post
 	### And the new one :
-	baker [-p <title>|-b [-t][-x]|-l|-s <title|id>|-d <title|id> [-D]|-r <title|id>] [-f <filename>] [-w <path>] [-h]
+	baker [-p <title>|-b [-t][-x]|-l|-s <title|id>|-d <title|id> [-D]|-r <title|id>] [-f <filename>] [-w <path>] [-h] [-v]
 	  -b            ship all posts
 	  -d [title|id] change the date of a post
 	  -D            don't change the filename when changing date
@@ -577,6 +579,7 @@ usage() {
 	  -s [title|id] toggle the draft status of a post
 	  -S <all|none|user> Override the PRINT_ALL_SUMMARY variable
 	  -t            don't generate tags
+	  -v            print version
 	  -w [path]     use this path to work instead of ./
 	  -x            don't generate the RSS feed file
 	  -X            don't generate the Atom feed file
@@ -613,9 +616,9 @@ if [[ ${1:-} =~ ${_regex} ]]; then
 		*) usage ;;
 	esac
 else
-	# used      : ---b--Dd---f--Hh-------l---n---p---rSs-t-----wXx--------------
-	# available : AaB-Cc--EeF-Gg--IiJjKkL-MmN-OoP-QqR---T-UuVvW---YyZz0123456789
-	while getopts ":d:f:p:r:s:S:w:bDhHlntxX" option; do
+	# used      : ---b--Dd---f--Hh-------l---n---p---rSs-t---v-wXx--------------
+	# available : AaB-Cc--EeF-Gg--IiJjKkL-MmN-OoP-QqR---T-UuV-W---YyZz0123456789
+	while getopts ":d:f:p:r:s:S:w:bDhHlntvxX" option; do
 		case ${option} in
 			b) __b=1;;
 			d) __d=1;__post="${OPTARG}";;
@@ -628,6 +631,7 @@ else
 			s) __s=1;__post="${OPTARG}";;
 			S) [[ "${OPTARG,,}" =~ ^(user|all|none)$ ]] || die "Argument '${OPTARG}' unknown."; export PRINT_ALL_SUMMARY="${OPTARG,,}";;
 			t) __t=1;;
+			v) echo -e "${0} v${VERSION} [$Format:%h]\nbaker © taylorchu(2013-2015) & Flyounet(2015-2016)\n" ; exit 0;;
 			w) [[ -d "${OPTARG}" ]] && __w="$( cd ${OPTARG}; pwd)/";;
 			x) __x=1;;
 			X) __X=1;;
