@@ -14,7 +14,6 @@ config() {
 		export CONFIG_FILE="${1}"
 	elif [ ${__n:=0} -eq 0 -a -f "${__w}${DEFAULT_CONFIG_FILENAME}" ]; then
 		. "${__w}${DEFAULT_CONFIG_FILENAME}"
-		echo "Default config file loaded ${__w}${DEFAULT_CONFIG_FILENAME}"
 		export CONFIG_FILE="${__w}${DEFAULT_CONFIG_FILENAME}"
 	fi
 	echo ''
@@ -60,6 +59,9 @@ config() {
 	# Summary Print, values are all, none, user
 	# when using user the sumprint header tells baker about adding or not the summary
 	export PRINT_ALL_SUMMARY="${PRINT_ALL_SUMMARY:=user}"
+
+	# Editor : Defailt Editor will be vim. Update for your pleasure
+	export EDITOR=vim
 }
 
 #
@@ -370,6 +372,21 @@ post_toggle() {
 	fi
 }
 
+# post_edit call the EDITOR for a post (either use ID or post name)
+post_edit() {
+	local _fname=''
+	if [ -z "${1:-}" ]; then
+		usage
+	elif [ -z "${1//[0-9]/}" ]; then
+		readarray -t posts < <(find "$POST_DIR" -name '*.md' | sort -r)
+		[[ ${1} -lt ${#posts[@]} ]] && _fname="${posts[${1}]}"
+	elif [ -f "${POST_DIR}/${1}" -o -f "${POST_DIR}/${1}.md" ]; then
+		_fname="${POST_DIR}/${1//\.md/}.md"
+	fi
+	[[ -z "${_fname}" ]] && die "This post doesn't exist"
+	${EDITOR:=vim} "${_fname}"
+}
+
 # post_list list the id title and status of posts
 post_list() {
 	local idx=0
@@ -379,15 +396,17 @@ post_list() {
 		echo "id title status tag(s)"
 		for post in "${posts[@]}"; do
 			id="$(basename "$post" .md)"
+			local _hidden=''
+			[[ "$(header hidden < "$post")" = 'true' ]] && _hidden=' /!\ HIDDEN /!\ '
 			# skip drafts
 			if [ "$(header draft < "$post")" == 'false' ]; then
-				echo "${idx} $id [Published] [$(header tags < "$post")]"
+				echo "${idx} $id [Published] [$(header tags < "$post")]${_hidden}"
 			else
-				if [ "$(header hidden < "$post")" = 'true' ]; then
-					echo "${idx} $id [Draft] [$(header tags < "$post")] <-- HIDDEN"
-				else
-					echo "${idx} $id [Draft] [$(header tags < "$post")]"
-				fi
+#				if [ "$(header hidden < "$post")" = 'true' ]; then
+					echo "${idx} $id [Draft] [$(header tags < "$post")]${_hidden}"
+#				else
+#					echo "${idx} $id [Draft] [$(header tags < "$post")]"
+#				fi
 			fi
 			((idx++))
 		done
@@ -415,7 +434,7 @@ post_post() {
 	EOF
 
 	echo "$post_file"
-	[[ "$EDITOR" ]] && $EDITOR "$post_file"
+	[[ "$EDITOR" ]] && ${EDITOR:=vim} "$post_file"
 }
 
 # post_infos Print informations on configuration
@@ -450,6 +469,8 @@ post_infos() {
 	Tags Link		: ${TAGS_LINK}
 
 	Summary to print	: ${PRINT_ALL_SUMMARY}
+
+	Editor			: ${EDITOR}
 	EOFF
 }
 
@@ -619,10 +640,11 @@ usage() {
 	  date   [title] change the date of a post
 	  rename [title] parse the header to re-generate the filename of a post
 	### And the new one :
-	baker [-p <title>|-b [-t][-x][-X][-z]|-l|-s <title|id>|-d <title|id> [-D]|-r <title|id>] [-f <filename>] [-w <path>] [-I] [-h] [-v]
+	baker [-p <title>|-b [-t][-x][-X][-z]|-l|-s <title|id>|-d <title|id> [-D]|-e <title|id>|-r <title|id>] [-f <filename>] [-w <path>] [-I] [-h] [-v]
 	  -b            ship all posts
 	  -d [title|id] change the date of a post
 	  -D            don't change the filename when changing date
+	  -e [title|id] edit your post (\$EDITOR used to call your editor)
 	  -f [file]     get the configuration from a file
 	  -h            print help (you currently read it)
 	  -I		print informations on configuration
@@ -671,15 +693,16 @@ if [[ ${1:-} =~ ${_regex} ]]; then
 		*) usage ;;
 	esac
 else
-	# used      : ---b--Dd---f--HhI------l---n---p---rSs-t---v-wXx---z----------
-	# available : AaB-Cc--EeF-Gg---iJjKkL-MmN-OoP-QqR---T-UuV-W---YyZ-0123456789
-	while getopts ":d:f:p:r:s:S:w:bDhHIlntvxX" option; do
+	# used      : ---b--Dd-e-f--HhI------l---n---p---rSs-t---v-wXx---z----------
+	# available : AaB-Cc--E-F-Gg---iJjKkL-MmN-OoP-QqR---T-UuV-W---YyZ-0123456789
+	while getopts ":d:e:f:p:r:s:S:w:bDhHIlntvxX" option; do
 		case ${option} in
 			b) __b=1;;
 			d) __d=1;__post="${OPTARG}";;
 			D) __D=1;;
 			I) __I=1;;
 			l) __l=1;;
+			e) __e=1;__post="${OPTARG}";;
 			f) __f="${OPTARG}";;
 			n) __n=1;;
 			p) __p=1;__post="${OPTARG}";;
@@ -698,10 +721,10 @@ else
 	done
 fi
 
-if [ $(( ${__b:=0} + ${__d:=0} + ${__l:=0} + ${__p:=0} + ${__r:=0} + ${__s:=0} + ${__I:=0} )) -gt 1 ]; then
-	echo "You have to choose between -b, -d, -I, -l, -p, -r, -s" >&2
+if [ $(( ${__b:=0} + ${__d:=0} + ${__e:=0} + ${__l:=0} + ${__p:=0} + ${__r:=0} + ${__s:=0} + ${__I:=0} )) -gt 1 ]; then
+	echo "You have to choose between -b, -d, -e, -I, -l, -p, -r, -s" >&2
 	usage
-elif [ $(( ${__b:=0} + ${__d:=0} + ${__l:=0} + ${__p:=0} + ${__r:=0} + ${__s:=0} + ${__I:=0} )) -lt 1 ]; then
+elif [ $(( ${__b:=0} + ${__d:=0} + ${__e:=0} + ${__l:=0} + ${__p:=0} + ${__r:=0} + ${__s:=0} + ${__I:=0} )) -lt 1 ]; then
 	echo "Nothing to do ?" >&2
 	usage
 fi
@@ -724,6 +747,8 @@ elif [ ${__l} -eq 1 ]; then
 	post_list
 elif [ ${__d} -eq 1 ]; then
 	post_date "${__post}"
+elif [ ${__e} -eq 1 ]; then
+	post_edit "${__post}"
 elif [ ${__p} -eq 1 ]; then
 	post_post "${__post}"
 elif [ ${__r} -eq 1 ]; then
