@@ -149,6 +149,7 @@ Here are some variables you could change (in fact all could be changed, it will 
 * `TAGS_LINK`: The html (based on your layout) to generate tags list. `==tagNameSlugged==` will be replaced by the tag name slugged. `==tagName==` will be replaced by the tag name.
 * `RSS_SITE_URL` : Inform readers where to find your posts when they read the RSS Feed
 * `PRINT_ALL_SUMMARY`: Add the summary of your post inside your post. Use `none`, `all` or `user`. `all` and `none` override the `sumprint` header.
+* `EDITOR`: Use this editor to edit your post.
 
 To view your configuration, you could use the `-I` flag.
 
