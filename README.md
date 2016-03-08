@@ -118,6 +118,7 @@ The headers in post indicate how Baker has to bake :
 * `tags: `: The list of tags (comma separated) for the post.
 * `layout: `: The name of layout used to generate the post. The name should have not contain the `.md` at the end.
 * `draft: `: When cooking your post, Baker put your post in the `draft` directory if set to true, in `out` directory either.
+* `hidden: `: When cooking your post, Baker put your post in the `hidden` directory if set to true, without any reference.
 * `summary: `: The summary is printed in the index (and could be added in the post).
 * `sumprint: `: If set to true, the summary will be added in the beginning of the post (depends on your layout).
 
@@ -131,6 +132,7 @@ Here are some variables you could change (in fact all could be changed, it will 
 * `DRAFT_DIR` : Where to store your compiled html draft files
 * `LAYOUT_DIR` : Where to store your layout markodown files
 * `PUBLIC_DIR`: Where to store your static content (css, images, js, ...)
+* `HIDDEN_DIR`: Where to store your hidden post (default is `OUTPUT_DIR`
 
 * `SITE_NAME` : The site title
 * `SITE_DESC` : The site description
@@ -147,11 +149,15 @@ Here are some variables you could change (in fact all could be changed, it will 
 * `TAGS_LINK`: The html (based on your layout) to generate tags list. `==tagNameSlugged==` will be replaced by the tag name slugged. `==tagName==` will be replaced by the tag name.
 * `RSS_SITE_URL` : Inform readers where to find your posts when they read the RSS Feed
 * `PRINT_ALL_SUMMARY`: Add the summary of your post inside your post. Use `none`, `all` or `user`. `all` and `none` override the `sumprint` header.
+* `EDITOR`: Use this editor to edit your post.
+
+To view your configuration, you could use the `-I` flag.
 
 ## Markdown
 
-It currently uses the implementation from [Daring Fireball](http://daringfireball.net/projects/markdown/).
+It currently uses the implementation from [Daring Fireball](http://daringfireball.net/projects/markdown/). As a consequence, `perl` is needed for `baker` to work.
 
 ## License
 
 This software is made by taylorchu, and is released under GPL2.
+All modifications made by Flyounet are released under the WTFPL and DSSL.
