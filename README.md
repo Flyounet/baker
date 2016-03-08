@@ -160,3 +160,4 @@ It currently uses the implementation from [Daring Fireball](http://daringfirebal
 ## License
 
 This software is made by taylorchu, and is released under GPL2.
+All modifications made by Flyounet are released under the WTFPL and DSSL.
