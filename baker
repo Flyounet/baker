@@ -24,7 +24,7 @@
 # \*------------------------------------------------------------------------*/
 
 
-VERSION='1.1.1'
+VERSION='1.1.2'
 
 #
 # config
@@ -396,6 +396,24 @@ post_toggle() {
 	fi
 }
 
+# post_open call the xdg-open for a post (either use ID or post name)
+post_open() {
+	local _fname=''
+	if [ -z "${1:-}" ]; then
+		usage
+	elif [ -z "${1//[0-9]/}" ]; then
+		readarray -t posts < <(find "$POST_DIR" -name '*.md' | sort -r)
+		[[ ${1} -lt ${#posts[@]} ]] && _fname="${posts[${1}]}"
+	elif [ -f "${POST_DIR}/${1}" -o -f "${POST_DIR}/${1}.md" ]; then
+		_fname="${POST_DIR}/${1//\.md/}.md"
+	fi
+	[[ -z "${_fname}" ]] && die "This post doesn't exist"
+	local _hname="${_fname##*/}"; _hname="${DRAFT_DIR}/${_hname%.*}.html"
+	[[ "$(header draft < "${_fname}")" == 'false' ]] && { _hname="${_fname##*/}"; _hname="${OUTPUT_DIR}/${_hname%.*}.html"; }
+	echo "I'll open : ${_hname}"
+	xdg-open "${_hname}"
+}
+
 # post_edit call the EDITOR for a post (either use ID or post name)
 post_edit() {
 	local _fname=''
@@ -674,6 +692,7 @@ usage() {
 	  -I		print informations on configuration
 	  -l            list all posts with state
 	  -n            No default config file loaded BAKER_CONFIG
+	  -o [title|id] open the page (using xdg-open)
 	  -p "[title]"  draft a post
 	  -r [title|id] parse a post content to re-generate the filename
 	  -s [title|id] toggle the draft status of a post
@@ -717,9 +736,9 @@ if [[ ${1:-} =~ ${_regex} ]]; then
 		*) usage ;;
 	esac
 else
-	# used      : ---b--Dd-e-f--HhI------l---n---p---rSs-t---v-wXx---z----------
-	# available : AaB-Cc--E-F-Gg---iJjKkL-MmN-OoP-QqR---T-UuV-W---YyZ-0123456789
-	while getopts ":d:e:f:p:r:s:S:w:bDhHIlntvxX" option; do
+	# used      : ---b--Dd-e-f--HhI------l---n-o-p---rSs-t---v-wXx---z----------
+	# available : AaB-Cc--E-F-Gg---iJjKkL-MmN-O-P-QqR---T-UuV-W---YyZ-0123456789
+	while getopts ":d:e:f:o:p:r:s:S:w:bDhHIlntvxX" option; do
 		case ${option} in
 			b) __b=1;;
 			d) __d=1;__post="${OPTARG}";;
@@ -729,6 +748,7 @@ else
 			e) __e=1;__post="${OPTARG}";;
 			f) __f="${OPTARG}";;
 			n) __n=1;;
+			o) __o=1;__post="${OPTARG}";;
 			p) __p=1;__post="${OPTARG}";;
 			r) __r=1;__post="${OPTARG}";;
 			s) __s=1;__post="${OPTARG}";;
@@ -745,10 +765,10 @@ else
 	done
 fi
 
-if [ $(( ${__b:=0} + ${__d:=0} + ${__e:=0} + ${__l:=0} + ${__p:=0} + ${__r:=0} + ${__s:=0} + ${__I:=0} )) -gt 1 ]; then
-	echo "You have to choose between -b, -d, -e, -I, -l, -p, -r, -s" >&2
+if [ $(( ${__b:=0} + ${__d:=0} + ${__e:=0} + ${__l:=0} + ${__o:=0} + ${__p:=0} + ${__r:=0} + ${__s:=0} + ${__I:=0} )) -gt 1 ]; then
+	echo "You have to choose between -b, -d, -e, -I, -l, -o, -p, -r, -s" >&2
 	usage
-elif [ $(( ${__b:=0} + ${__d:=0} + ${__e:=0} + ${__l:=0} + ${__p:=0} + ${__r:=0} + ${__s:=0} + ${__I:=0} )) -lt 1 ]; then
+elif [ $(( ${__b:=0} + ${__d:=0} + ${__e:=0} + ${__l:=0} + ${__o:=0} + ${__p:=0} + ${__r:=0} + ${__s:=0} + ${__I:=0} )) -lt 1 ]; then
 	echo "Nothing to do ?" >&2
 	usage
 fi
@@ -781,6 +801,8 @@ elif [ ${__s} -eq 1 ]; then
 	post_toggle "${__post}"
 elif [ ${__I} -eq 1 ]; then
 	post_infos
+elif [ ${__o} -eq 1 ]; then
+	post_open "${__post}"
 else
 	die "Warp  Zone : Mario was here"
 fi
