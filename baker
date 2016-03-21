@@ -435,20 +435,16 @@ post_list() {
 	[[ ! -d "${POST_DIR}" ]] && die "${POST_DIR} doesn't exit. Aborting..."
 	readarray -t posts < <(find "$POST_DIR" -name '*.md' | sort -r)
 	(
-		echo "id title status tag(s)"
+		echo -e "id title status tag(s)"
 		for post in "${posts[@]}"; do
 			id="$(basename "$post" .md)"
 			local _hidden=''
-			[[ "$(header hidden < "$post")" = 'true' ]] && _hidden=' /!\ HIDDEN /!\ '
+			[[ "$(header hidden < "$post")" = 'true' ]] && _hidden=' \e[2m\e[31m/!\ HIDDEN /!\ \e[0m'
 			# skip drafts
 			if [ "$(header draft < "$post")" == 'false' ]; then
-				echo "${idx} $id [Published] [$(header tags < "$post")]${_hidden}"
+				echo -e "${idx} $id [\e[32mPublished\e[0m] [$(header tags < "$post")]${_hidden}"
 			else
-#				if [ "$(header hidden < "$post")" = 'true' ]; then
-					echo "${idx} $id [Draft] [$(header tags < "$post")]${_hidden}"
-#				else
-#					echo "${idx} $id [Draft] [$(header tags < "$post")]"
-#				fi
+				echo -e "${idx} $id [\e[31mDraft\e[0m] [$(header tags < "$post")]${_hidden}"
 			fi
 			((idx++))
 		done
