@@ -597,7 +597,7 @@ post_bake() {
 		fi
 		# Manage summary
 		if [ "${PRINT_ALL_SUMMARY}" = 'all' -o "$(header sumprint < "${post}")" = 'true' -a "${PRINT_ALL_SUMMARY}" = 'user' ]; then
-#			declare -g summary2="$(perl -e "${MkDown}" <<< "$(header summary < "${post}")") toto"
+			declare -g SUMMARYPARSED="$(perl -e "${MkDown}" <<< "$(header summary < "${post}")")"
 			export PRINTSUMMARY=true
 		else
 			unset PRINTSUMMARY

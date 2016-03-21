@@ -22,7 +22,7 @@
 
 	<article>
 @if PRINTSUMMARY
-		{{ summary }}
+		{{ SUMMARYPARSED }}
 		<hr class="summary" />
 @end
 		{{ content }}
