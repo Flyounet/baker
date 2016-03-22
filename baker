@@ -24,7 +24,7 @@
 # \*------------------------------------------------------------------------*/
 
 
-VERSION='1.1.2'
+VERSION='1.1.3'
 
 #
 # config
@@ -435,20 +435,16 @@ post_list() {
 	[[ ! -d "${POST_DIR}" ]] && die "${POST_DIR} doesn't exit. Aborting..."
 	readarray -t posts < <(find "$POST_DIR" -name '*.md' | sort -r)
 	(
-		echo "id title status tag(s)"
+		echo -e "id title status tag(s)"
 		for post in "${posts[@]}"; do
 			id="$(basename "$post" .md)"
 			local _hidden=''
-			[[ "$(header hidden < "$post")" = 'true' ]] && _hidden=' /!\ HIDDEN /!\ '
+			[[ "$(header hidden < "$post")" = 'true' ]] && _hidden=' \e[2m\e[31m/!\ HIDDEN /!\ \e[0m'
 			# skip drafts
 			if [ "$(header draft < "$post")" == 'false' ]; then
-				echo "${idx} $id [Published] [$(header tags < "$post")]${_hidden}"
+				echo -e "${idx} $id [\e[32mPublished\e[0m] [$(header tags < "$post")]${_hidden}"
 			else
-#				if [ "$(header hidden < "$post")" = 'true' ]; then
-					echo "${idx} $id [Draft] [$(header tags < "$post")]${_hidden}"
-#				else
-#					echo "${idx} $id [Draft] [$(header tags < "$post")]"
-#				fi
+				echo -e "${idx} $id [\e[31mDraft\e[0m] [$(header tags < "$post")]${_hidden}"
 			fi
 			((idx++))
 		done
@@ -597,6 +593,7 @@ post_bake() {
 		fi
 		# Manage summary
 		if [ "${PRINT_ALL_SUMMARY}" = 'all' -o "$(header sumprint < "${post}")" = 'true' -a "${PRINT_ALL_SUMMARY}" = 'user' ]; then
+			declare -g SUMMARYPARSED="$(perl -e "${MkDown}" <<< "$(header summary < "${post}")")"
 			export PRINTSUMMARY=true
 		else
 			unset PRINTSUMMARY
@@ -614,6 +611,7 @@ post_bake() {
 			declare -g "posts_${idx}_atomtag"="${ATOM_TAG},${_atomd%%-*}"
 		fi
 		export_headers "$post" "posts_${idx}_"
+		local lesum="posts_${idx}_summary";[[ ! -z "${!lesum}" ]] && declare -g "posts_${idx}_summary"="$(perl -e "${MkDown}" <<< "$(header summary < "${post}")")"
 		POST_PREV="$id.html"
 		(( id_all++ ))
 		(( idx++ ))
@@ -650,6 +648,7 @@ post_bake() {
 						if [ "${_tag}" = "${_tagIdx}" ] ; then
 							declare "posts_${idx}_id"="$id"
 							export_headers "$post" "posts_${idx}_"
+							local lesum="posts_${idx}_summary";[[ ! -z "${!lesum}" ]] && declare -g "posts_${idx}_summary"="$(perl -e "${MkDown}" <<< "$(header summary < "${post}")")"
 							(( idx++ ))
 						fi
 					done <<< "$(echo -e "${tags//,/\\n}")"
@@ -738,7 +737,7 @@ if [[ ${1:-} =~ ${_regex} ]]; then
 else
 	# used      : ---b--Dd-e-f--HhI------l---n-o-p---rSs-t---v-wXx---z----------
 	# available : AaB-Cc--E-F-Gg---iJjKkL-MmN-O-P-QqR---T-UuV-W---YyZ-0123456789
-	while getopts ":d:e:f:o:p:r:s:S:w:bDhHIlntvxX" option; do
+	while getopts ":d:e:f:o:p:r:s:S:w:bDhHIlntvxXz" option; do
 		case ${option} in
 			b) __b=1;;
 			d) __d=1;__post="${OPTARG}";;
