@@ -753,7 +753,7 @@ else
 			s) __s=1;__post="${OPTARG}";;
 			S) [[ "${OPTARG,,}" =~ ^(user|all|none)$ ]] || die "Argument '${OPTARG}' unknown."; export PRINT_ALL_SUMMARY="${OPTARG,,}";;
 			t) __t=1;;
-			v) echo -e "${0} v${VERSION} [$Format:%h]\nbaker © taylorchu(2013-2015) & Flyounet(2015-2016)\n" ; exit 0;;
+			v) echo -e "${0} v${VERSION} [$Format:%h$]\nbaker © taylorchu(2013-2015) & Flyounet(2015-2016)\n" ; exit 0;;
 			w) [[ -d "${OPTARG}" ]] && __w="$( cd ${OPTARG}; pwd)/";;
 			x) __x=1;;
 			X) __X=1;;
