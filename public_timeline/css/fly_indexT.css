@@ -34,7 +34,7 @@
 }
 * {
  font-family: "Courier New",Courier,mono;
- background-color: black !important;
+/* background-color: black !important; */
  color: rgb(160, 160, 160);
 }
 body {
@@ -89,21 +89,6 @@ nav a:hover .fa, aside a:hover .fa {
  background-color: #337AB7 !important;
  color: inherit;
 }
-/*
-i, i .fa-li, i .fa {
- margin: -5px;
- padding: -5px;
- position: static !important;
-
-}
-*/
-/*
-nav .fa-li * {
- margin: 0px;
- padding: 0px;
- position: fixed !important;
-} */
-/* position: static !important;*/
 
 nav a:hover, aside a:hover {
  background-color: #337AB7 !important;
@@ -240,19 +225,6 @@ text-decoration-color: #101010;
 -moz-text-decoration-style: wavy;
 }
 
-.col-md-6 h2 {
- font-size: 2.6em;
- text-decoration: none !important;
-}
-
-.col-md-6 >.post-date, .col-md-6 .post-date time {
- font-size: 0.9em;
-}
-.col-md-6 article {
-border-bottom: 1px solid #080808;
-margin-bottom: 2em;
-}
-
 
 /* TIMELINE RELATED RULES */
 
@@ -336,6 +308,14 @@ html { background-color: #303030; }
 /* Blue Color : Default */
 .timeline:before, .timeline h2, .timeline article, .timeline article:nth-child(even) { background: #337AB7; }
 .timeline article:before, .timeline article:nth-child(odd):before { border-top: 1em solid #337AB7; }
+.timeline * { color: #000; }
+.timeline a, .timeline a:link, .timeline a:visited, .timeline a:hover { color: #303030;
+text-decoration: underline;
+text-decoration-style: wavy;
+text-decoration-color: #101010;
+-moz-text-decoration-style: wavy;
+}
+
 /* Color red */
 .timeline.cred:before, .timeline h2.cred, .timeline article.cred, .timeline article.cred:nth-child(even) { background: #FF0040 !important; }
 .timeline article.cred:before, .timeline article.cred:nth-child(odd):before { border-top: 1em solid #FF0040 !important; }
