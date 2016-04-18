@@ -21,7 +21,12 @@
 @if NEWSECTION
 		<section>
 @end
+@if indexTimeline
+			<article class="{{ indexTimeline }}">
+@end
+@if !indexTimeline
 			<article>
+@end
 				<h3><a href="{{ id }}.html">{{ title }}</a></h2>
 				<p>{{ summary }}</p>
 				<time>{{ date }}</time>
@@ -32,8 +37,17 @@
 @end
 	</section>
 
-	<footer id="author" class="row">
-		<section class="col-md-5">
+	<footer id="author" class="flexouille">
+		<section>
+        <nav>
+                <ul class="nav nav-pills pull-right">
+                        <li class="active"><a href="index.html" title="Home"><i class="fa fa-home fa-2x"></i></a></li>
+                        <li><a href="{{ POST_PREV }}" title="Newer"><i class="fa fa-long-arrow-left fa-2x"></i></a></li>
+                        <li><a href="{{ POST_NEXT }}" title="Older"><i class="fa fa-long-arrow-right fa-2x"></i></a></li>
+                        <li><a href="#author"i title="About"><i class="fa fa-heartbeat fa-2x"></i></a></li>
+                </ul>
+        </nav>
+
 			<span class="text-center">Page générée par une version <a href="http://github.com/Flyounet/baker">modifiée</a> de <a href="http://github.com/taylorchu/baker">baker</a>.</span>
 @if RSS_DATE
 			<span class="text-center"><i class="fa-li fa fa-rss"></i><a href="rss.xml">RSS</a></span>
@@ -42,11 +56,9 @@
 			<span class="text-center"><i class="fa-li fa fa-rss"></i><a href="atom.xml">Atom</a></span>
 @end
 		</section>
-		<section class="col-md-2">
-@include contact
-		</section>
-		<section class="col-md-5">
+		<section>
 @include author
+@include contact
 		</section>
 	</footer>
 </main>

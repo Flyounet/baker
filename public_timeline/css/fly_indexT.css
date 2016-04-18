@@ -158,9 +158,20 @@ footer {
  padding-top: 1em;
  border-top: 1px solid #337AB7;
 }
-footer ul {
- clear: both;
- display: inline;
+.flexouille {
+ display: flex;
+ flex-flow: row wrap;
+ justify-content: space-between;
+align-items: stretch;
+}
+.flexouille section {
+flex: 1 1;
+border: 1px #fff solid;
+margin: 0;
+}
+.flexouille nav {
+ display: flex;
+ flex-direction: column;
 }
 article, aside, details, figcaption, figure, footer, header, hgroup, main, menu, nav, section, summary {
     display: block;
