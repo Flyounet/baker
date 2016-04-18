@@ -150,6 +150,7 @@ Here are some variables you could change (in fact all could be changed, it will 
 * `RSS_SITE_URL` : Inform readers where to find your posts when they read the RSS Feed
 * `PRINT_ALL_SUMMARY`: Add the summary of your post inside your post. Use `none`, `all` or `user`. `all` and `none` override the `sumprint` header.
 * `EDITOR`: Use this editor to edit your post.
+* `BAKER_EXTRA_HEADER`: When Baker create a post it adds the header(s) in the post (use `::` as separator).
 
 To view your configuration, you could use the `-I` flag.
 
