@@ -24,7 +24,7 @@
 # \*------------------------------------------------------------------------*/
 
 
-VERSION='1.1.3a'
+VERSION='1.1.4'
 
 #
 # config
@@ -83,6 +83,9 @@ config() {
 	# Summary Print, values are all, none, user
 	# when using user the sumprint header tells baker about adding or not the summary
 	export PRINT_ALL_SUMMARY="${PRINT_ALL_SUMMARY:=user}"
+
+	# If you need to add header when creating a new post. Separator is ::
+	export BAKER_EXTRA_HEADER="${BAKER_EXTRA_HEADER:=titi: ::toto: ::tata: trut}"
 
 	# Editor : Defailt Editor will be vim. Update for your pleasure
 	export EDITOR=vim
@@ -470,7 +473,7 @@ post_post() {
 	summary: 
 	---
 	EOF
-
+	[[ ! -z "${BAKER_EXTRA_HEADER}" ]] && sed -i -e 's/^\(summary:[[:space:]]*\)$/'"${BAKER_EXTRA_HEADER}::"'\1/g' -e $'s/::/\\n/g' "$post_file"
 	echo "$post_file"
 	[[ "$EDITOR" ]] && ${EDITOR:=vim} "$post_file"
 }
