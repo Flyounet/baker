@@ -85,7 +85,7 @@ config() {
 	export PRINT_ALL_SUMMARY="${PRINT_ALL_SUMMARY:=user}"
 
 	# If you need to add header when creating a new post. Separator is ::
-	export BAKER_EXTRA_HEADER="${BAKER_EXTRA_HEADER:=titi: ::toto: ::tata: trut}"
+	export BAKER_EXTRA_HEADER="${BAKER_EXTRA_HEADER:=}"
 
 	# Editor : Defailt Editor will be vim. Update for your pleasure
 	export EDITOR=vim
