@@ -166,7 +166,7 @@ align-items: stretch;
 }
 .flexouille section {
 flex: 1 1;
-border: 1px #fff solid;
+/* border: 1px #fff solid; */
 margin: 0;
 }
 .flexouille nav {

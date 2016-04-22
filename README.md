@@ -151,6 +151,8 @@ Here are some variables you could change (in fact all could be changed, it will 
 * `PRINT_ALL_SUMMARY`: Add the summary of your post inside your post. Use `none`, `all` or `user`. `all` and `none` override the `sumprint` header.
 * `EDITOR`: Use this editor to edit your post.
 * `BAKER_EXTRA_HEADER`: When Baker create a post it adds the header(s) in the post (use `::` as separator).
+* `BAKER_TIMELINE_COMPARATOR`: Baker use this variable to compare date of post to set a new `<section>`.
+* `BAKER_TIMELINE_RENDERER`: Baker use this variable to render the test of new `<section>`.
 
 To view your configuration, you could use the `-I` flag.
 

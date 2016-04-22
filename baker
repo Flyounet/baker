@@ -85,7 +85,12 @@ config() {
 	export PRINT_ALL_SUMMARY="${PRINT_ALL_SUMMARY:=user}"
 
 	# If you need to add header when creating a new post. Separator is ::
-	export BAKER_EXTRA_HEADER="${BAKER_EXTRA_HEADER:=titi: ::toto: ::tata: trut}"
+	export BAKER_EXTRA_HEADER="${BAKER_EXTRA_HEADER:=}"
+
+	# If you want to render a Timeline, you probably want to have a separator for some era.
+	# In my case I usually separate month basis.
+	export BAKER_TIMELINE_COMPARATOR="${BAKER_TIMELINE_COMPARATOR:=+%B %Y}"
+	export BAKER_TIMELINE_RENDERER="${BAKER_TIMELINE_RENDERER:=+%B %Y}"
 
 	# Editor : Defailt Editor will be vim. Update for your pleasure
 	export EDITOR=vim
@@ -571,20 +576,20 @@ post_bake() {
 
 		if [ ${idx} -eq 0 -o $((idx_all-idx_prev)) -eq 0 -a ${id_all} -eq 0 ]; then
 			POST_PREV="index.html"
-			declare -g "posts_${idx}_NEWSECTION"=true; declare -g "posts_${idx}_NEWDATE"=true;  declare -g "posts_${idx}_newdate"="$(date --date="$(header date < "$post" | tr "TZ" "  ")" "+%B %Y")";
+			declare -g "posts_${idx}_NEWSECTION"=true; declare -g "posts_${idx}_NEWDATE"=true;  declare -g "posts_${idx}_newdate"="$(date --date="$(header date < "$post" | tr "TZ" "  ")" "${BAKER_TIMELINE_RENDERER}")";
 		else
 			POST_PREV="$( basename "${posts[$((id_all-idx_prev))]}" )"
 			POST_PREV="${POST_PREV%*.md}.html"
 			unset NEWSECTION; unset NEWDATE
 			declare -g "posts_${idx}_NEWSECTION"=''; declare -g "posts_${idx}_NEWDATE"=''
-			[[ ${idx} -eq 0 || "$(date --date="$(header date < "$post" | tr "TZ" "  ")" "+%B %Y")" != "$(date --date="$(header date < "${posts[$((id_all-idx_prev))]}" | tr "TZ" "  ")" "+%B %Y")" ]] && { declare -g "posts_${idx}_NEWSECTION"=true; declare -g "posts_${idx}_NEWDATE"=true;  declare -g "posts_${idx}_newdate"="$(date --date="$(header date < "$post" | tr "TZ" "  ")" "+%B %Y")";}
+			[[ ${idx} -eq 0 || "$(date --date="$(header date < "$post" | tr "TZ" "  ")" "${BAKER_TIMELINE_COMPARATOR}")" != "$(date --date="$(header date < "${posts[$((id_all-idx_prev))]}" | tr "TZ" "  ")" "${BAKER_TIMELINE_COMPARATOR}")" ]] && { declare -g "posts_${idx}_NEWSECTION"=true; declare -g "posts_${idx}_NEWDATE"=true;  declare -g "posts_${idx}_newdate"="$(date --date="$(header date < "$post" | tr "TZ" "  ")" "${BAKER_TIMELINE_RENDERER}")";}
 		fi
 		POST_NEXT="$( basename "${posts[$((id_all+idx_next))]}" )"
 		[[ -z "${POST_PREV:=}" ]] && POST_PREV='index.html'
 		[[ -z "${POST_NEXT:=}" ]] && POST_NEXT='index.md'
 		unset NEWENDSECTION;
 		declare -g "posts_${idx}_NEWENDSECTION"=''
-		[[ $((id_all+idx_next)) -eq ${#posts[@]} || "$(date --date="$(header date < "$post" | tr "TZ" "  ")" "+%B %Y")" != "$(date --date="$(header date < "${posts[$((id_all+idx_next))]}" | tr "TZ" "  ")" "+%B %Y")" ]] && declare -g "posts_${idx}_NEWENDSECTION"=true
+		[[ $((id_all+idx_next)) -eq ${#posts[@]} || "$(date --date="$(header date < "$post" | tr "TZ" "  ")" "${BAKER_TIMELINE_COMPARATOR}")" != "$(date --date="$(header date < "${posts[$((id_all+idx_next))]}" | tr "TZ" "  ")" "${BAKER_TIMELINE_COMPARATOR}")" ]] && declare -g "posts_${idx}_NEWENDSECTION"=true
 		POST_NEXT="${POST_NEXT%*.md}.html"
 		# look for the tags
 		if [ ${__t:=0} -eq 0 ]; then # When implemented the -c will avoid tags generation
@@ -639,7 +644,6 @@ post_bake() {
 		wait
 	fi
 	echo "Rendering Index..." >&2
-	export GENERATEINDEX=true
 	render_file "$LAYOUT_DIR/index.md" > "$OUTPUT_DIR/index.html" &
 	wait
 	# Generate the indexes for each tags
