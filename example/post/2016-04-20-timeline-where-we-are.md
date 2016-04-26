@@ -20,9 +20,10 @@ I wrote 2 css, one for the index and the other for the posts.
 
 ## Any one to thanks ?
 
-Sure the original author of this css : Dave Ruppert.
+Sure the original author of this css : [Dave Ruppert] [dave].
 
 I found it on [codpen] [].
 
 
 [codpen]: http://codepen.io/anon/pen/bpaqXG "A Responsive Timeline CSS"
+[dave]: http://daverupert.com/about/ "Watch his timeline"
