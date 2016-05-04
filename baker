@@ -76,6 +76,7 @@ config() {
 	# categories
 	export TAGS_BASELIST="${TAGS_BASELIST:=mylife,internet,baker}"
 	export TAGS_LINK="${TAGS_LINK:=<li><a href='index_==tagNameSlugged==.html' title='jump to tag'><i class='fa fa-tag'></i>&nbsp;==tagName==</a></li>}"
+	export TAGS_LAYOUT="${TAGS_LAYOUT:=index.md}"
 
 	# RSS
 	export RSS_SITE_URL="${RSS_SITE_URL:=http://baker.example.com/alone}"
@@ -85,7 +86,12 @@ config() {
 	export PRINT_ALL_SUMMARY="${PRINT_ALL_SUMMARY:=user}"
 
 	# If you need to add header when creating a new post. Separator is ::
-	export BAKER_EXTRA_HEADER="${BAKER_EXTRA_HEADER:=titi: ::toto: ::tata: trut}"
+	export BAKER_EXTRA_HEADER="${BAKER_EXTRA_HEADER:=}"
+
+	# If you want to render a Timeline, you probably want to have a separator for some era.
+	# In my case I usually separate month basis.
+	export BAKER_TIMELINE_COMPARATOR="${BAKER_TIMELINE_COMPARATOR:=+%B %Y}"
+	export BAKER_TIMELINE_RENDERER="${BAKER_TIMELINE_RENDERER:=+%B %Y}"
 
 	# Editor : Defailt Editor will be vim. Update for your pleasure
 	export EDITOR=vim
@@ -360,6 +366,25 @@ post_date() {
 	fi
 }
 
+# post_update change the date of the update field in a post
+post_update() {
+	local _fname=''
+	readarray -t posts < <(find "$POST_DIR" -name '*.md' | sort -r)
+	if [ -z "${1:-}" ]; then
+		usage
+	elif [ -z "${1//[0-9]/}" ]; then
+		if [ ${1} -lt ${#posts[@]} ]; then
+			_fname="${posts[${1}]}"
+		fi
+	elif [ -f "${POST_DIR}/${1}" -o -f "${POST_DIR}/${1}.md" ]; then
+		_fname="${POST_DIR}/${1//\.md/}.md"
+	fi
+	if [ -z "${_fname}" ]; then
+		die "This post doesn't exist"
+	fi
+	sed -i -e 's;^[[:space:]]*update:[[:space:]]*.*$;update: '"$(date -u "+%FT%TZ")"';g'  "${_fname}"
+}
+
 # post_rename parse the headers post to rename the post (usefull if changed the title or the date)
 post_rename() {
 	local _fname=''
@@ -465,6 +490,7 @@ post_post() {
 	---
 	title: $title
 	date: $(date -u +%FT%TZ)
+	update: 
 	tags: ${TAGS_BASELIST}
 	layout: post
 	draft: true
@@ -508,8 +534,14 @@ post_infos() {
 
 	Tags default list	: ${TAGS_BASELIST}
 	Tags Link		: ${TAGS_LINK}
+	Tags Layout		: ${TAGS_LAYOUT}
 
 	Summary to print	: ${PRINT_ALL_SUMMARY}
+
+	Extra Header(s)		: ${BAKER_EXTRA_HEADER}
+
+	Timeline Date Compare	: ${BAKER_TIMELINE_COMPARATOR}
+	Timeline Date Renderer	: ${BAKER_TIMELINE_RENDERER}
 
 	Editor			: ${EDITOR}
 	EOFF
@@ -571,13 +603,20 @@ post_bake() {
 
 		if [ ${idx} -eq 0 -o $((idx_all-idx_prev)) -eq 0 -a ${id_all} -eq 0 ]; then
 			POST_PREV="index.html"
+			declare -g "posts_${idx}_NEWSECTION"=true; declare -g "posts_${idx}_NEWDATE"=true;  declare -g "posts_${idx}_newdate"="$(date --date="$(header date < "$post" | tr "TZ" "  ")" "${BAKER_TIMELINE_RENDERER}")";
 		else
 			POST_PREV="$( basename "${posts[$((id_all-idx_prev))]}" )"
 			POST_PREV="${POST_PREV%*.md}.html"
+			unset NEWSECTION; unset NEWDATE
+			declare -g "posts_${idx}_NEWSECTION"=''; declare -g "posts_${idx}_NEWDATE"=''
+			[[ ${idx} -eq 0 || "$(date --date="$(header date < "$post" | tr "TZ" "  ")" "${BAKER_TIMELINE_COMPARATOR}")" != "$(date --date="$(header date < "${posts[$((id_all-idx_prev))]}" | tr "TZ" "  ")" "${BAKER_TIMELINE_COMPARATOR}")" ]] && { declare -g "posts_${idx}_NEWSECTION"=true; declare -g "posts_${idx}_NEWDATE"=true;  declare -g "posts_${idx}_newdate"="$(date --date="$(header date < "$post" | tr "TZ" "  ")" "${BAKER_TIMELINE_RENDERER}")";}
 		fi
 		POST_NEXT="$( basename "${posts[$((id_all+idx_next))]}" )"
 		[[ -z "${POST_PREV:=}" ]] && POST_PREV='index.html'
 		[[ -z "${POST_NEXT:=}" ]] && POST_NEXT='index.md'
+		unset NEWENDSECTION;
+		declare -g "posts_${idx}_NEWENDSECTION"=''
+		[[ $((id_all+idx_next)) -eq ${#posts[@]} || "$(date --date="$(header date < "$post" | tr "TZ" "  ")" "${BAKER_TIMELINE_COMPARATOR}")" != "$(date --date="$(header date < "${posts[$((id_all+idx_next))]}" | tr "TZ" "  ")" "${BAKER_TIMELINE_COMPARATOR}")" ]] && declare -g "posts_${idx}_NEWENDSECTION"=true
 		POST_NEXT="${POST_NEXT%*.md}.html"
 		# look for the tags
 		if [ ${__t:=0} -eq 0 ]; then # When implemented the -c will avoid tags generation
@@ -632,11 +671,14 @@ post_bake() {
 		wait
 	fi
 	echo "Rendering Index..." >&2
+	export GENERATE_INDEX=true
 	render_file "$LAYOUT_DIR/index.md" > "$OUTPUT_DIR/index.html" &
 	wait
+	unset GENERATE_INDEX
 	# Generate the indexes for each tags
 	if [ ${__t:=0} -eq 0 ]; then
 		echo "Rendering Index for categories..." >&2
+		export GENERATE_TAGS=true
 		while read _tagIdx; do
 			# It's really important to unset all posts variables
 			while read a; do unset "${a}"; done <<< "$(compgen  -v | grep -E "^posts_[0-9]")"
@@ -657,7 +699,7 @@ post_bake() {
 					done <<< "$(echo -e "${tags//,/\\n}")"
 				fi
 			done
-			render_file "$LAYOUT_DIR/index.md" > "$OUTPUT_DIR/index_$(slug <<< "${_tagIdx}").html" &
+			render_file "$LAYOUT_DIR/${TAGS_LAYOUT}" > "$OUTPUT_DIR/index_$(slug <<< "${_tagIdx}").html" &
 			wait
 		done <<< "$(echo -e "${_allTags//,/\\n}")"
 	fi
@@ -684,7 +726,7 @@ usage() {
 	  date   [title] change the date of a post
 	  rename [title] parse the header to re-generate the filename of a post
 	### And the new one :
-	baker [-p <title>|-b [-t][-x][-X][-z]|-l|-s <title|id>|-d <title|id> [-D]|-e <title|id>|-r <title|id>] [-f <filename>] [-w <path>] [-I] [-h] [-v]
+	baker [-p <title>|-b [-t][-x][-X][-z]|-l|-s <title|id>|-d <title|id> [-D]|-e <title|id>|-r <title|id>|-u <title|id>] [-f <filename>] [-w <path>] [-I] [-h] [-v]
 	  -b            ship all posts
 	  -d [title|id] change the date of a post
 	  -D            don't change the filename when changing date
@@ -700,6 +742,7 @@ usage() {
 	  -s [title|id] toggle the draft status of a post
 	  -S <all|none|user> Override the PRINT_ALL_SUMMARY variable
 	  -t            don't generate tags
+	  -u [title|id] Change the date of the field update in a post
 	  -v            print version
 	  -w [path]     use this path to work instead of ./
 	  -x            don't generate the RSS feed file
@@ -740,7 +783,7 @@ if [[ ${1:-} =~ ${_regex} ]]; then
 else
 	# used      : ---b--Dd-e-f--HhI------l---n-o-p---rSs-t---v-wXx---z----------
 	# available : AaB-Cc--E-F-Gg---iJjKkL-MmN-O-P-QqR---T-UuV-W---YyZ-0123456789
-	while getopts ":d:e:f:o:p:r:s:S:w:bDhHIlntvxXz" option; do
+	while getopts ":d:e:f:o:p:r:s:u:S:w:bDhHIlntvxXz" option; do
 		case ${option} in
 			b) __b=1;;
 			d) __d=1;__post="${OPTARG}";;
@@ -756,6 +799,7 @@ else
 			s) __s=1;__post="${OPTARG}";;
 			S) [[ "${OPTARG,,}" =~ ^(user|all|none)$ ]] || die "Argument '${OPTARG}' unknown."; export PRINT_ALL_SUMMARY="${OPTARG,,}";;
 			t) __t=1;;
+			u) __u=1;__post="${OPTARG}";;
 			v) echo -e "${0} v${VERSION} [$Format:%h$]\nbaker © taylorchu(2013-2015) & Flyounet(2015-2016)\n" ; exit 0;;
 			w) [[ -d "${OPTARG}" ]] && __w="$( cd ${OPTARG}; pwd)/";;
 			x) __x=1;;
@@ -767,10 +811,10 @@ else
 	done
 fi
 
-if [ $(( ${__b:=0} + ${__d:=0} + ${__e:=0} + ${__l:=0} + ${__o:=0} + ${__p:=0} + ${__r:=0} + ${__s:=0} + ${__I:=0} )) -gt 1 ]; then
-	echo "You have to choose between -b, -d, -e, -I, -l, -o, -p, -r, -s" >&2
+if [ $(( ${__b:=0} + ${__d:=0} + ${__e:=0} + ${__l:=0} + ${__o:=0} + ${__p:=0} + ${__r:=0} + ${__s:=0} + ${__I:=0} + ${__u:=0} )) -gt 1 ]; then
+	echo "You have to choose between -b, -d, -e, -I, -l, -o, -p, -r, -s, -u" >&2
 	usage
-elif [ $(( ${__b:=0} + ${__d:=0} + ${__e:=0} + ${__l:=0} + ${__o:=0} + ${__p:=0} + ${__r:=0} + ${__s:=0} + ${__I:=0} )) -lt 1 ]; then
+elif [ $(( ${__b:=0} + ${__d:=0} + ${__e:=0} + ${__l:=0} + ${__o:=0} + ${__p:=0} + ${__r:=0} + ${__s:=0} + ${__I:=0} + ${__u:=0} )) -lt 1 ]; then
 	echo "Nothing to do ?" >&2
 	usage
 fi
@@ -805,6 +849,8 @@ elif [ ${__I} -eq 1 ]; then
 	post_infos
 elif [ ${__o} -eq 1 ]; then
 	post_open "${__post}"
+elif [ ${__u} -eq 1 ]; then
+	post_update "${__post}"
 else
 	die "Warp  Zone : Mario was here"
 fi
