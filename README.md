@@ -20,7 +20,7 @@ Baker is full of features, more or less
 - [x] Tags (call it Tags or cateories or whatever you like)
 - [x] RSS feed (Feed valid [FeedValidator](http://feedvalidator.org/))
 - [x] Atom feed (Feed valid [FeedValidator](http://feedvalidator.org/))
-- [x] Easy Configuration file (eay, if you read the doc)
+- [x] Easy Configuration file (easy, if you read the doc)
 
 ## Usages
 
@@ -31,7 +31,7 @@ Baker is CLI software. This means Command line Interface. Here are some the comm
 - `./baker -p "title"` : Create the post with the `title` and open your default $EDITOR (or vi).
 - `./baker -l` : List all your posts with their states.
 - `./baker -b` : Bake all your posts with love.
-- `./baker -e _id_` : Edit your post _id_.
+- `./baker -e id` : Edit your post _id_.
 
 ## Enhance your site
 
@@ -109,14 +109,14 @@ As you could see, Baker is able to understand directives. Those directives start
 Directives are :
 
 - `@include _file_` : Include part (only content) of a template file. You don't need to add the `.md`, it's added automatically. See example above.
-- `@if _variable_ ... @end` : If the variable exists then the content of `@if ... @end` is added to the template. See example above.
-- `@if _**!**variable_ ... @end` : If the variable doesn't exist (or is empty) then the content of `@if ... @end` is added to the template.
-- `@each _variable_ ... @end` : _variable_ MUST be an array. Iterate on the content of the array. See example below.
+- `@if variable ... @end` : If the variable exists then the content of `@if ... @end` is added to the template. See example above.
+- `@if !variable ... @end` : If the variable doesn't exist (or is empty) then the content of `@if ... @end` is added to the template. Space is **not** allowed between `!` and the _variable_.
+- `@each variable ... @end` : _variable_ MUST be an array. Iterate on the content of the array. See example below.
 - `@cmd ... @end` : Execute the shell code, and embbed the `stdout`. Be aware that this could have impact on your workstation/server. See example below.
 
 #### Templates : Directives examples
 
-**Example for the `@each _variable_ ... @end`** :
+**Example for the `@each variable ... @end`** :
 
 ```
 myVar = [
