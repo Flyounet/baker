@@ -7,7 +7,7 @@ Before starting here are examples of baker in action :
 
 ## License
 
-This software is made by taylorchu, and is released under GPL2.
+This software is made by taylorchu, and is released under GPL2.  
 All modifications made by Flyounet are released under the WTFPL and DSSL.
 
 ## Features
@@ -15,7 +15,7 @@ All modifications made by Flyounet are released under the WTFPL and DSSL.
 Baker is full of features, more or less 
 
 - [x] Templates (design your templates, Baker will fill it with datas), see Template section
-- [x] Markdown (all you Mardkown texts are transformed to HTML),
+- [x] Markdown (all your Mardkown texts are transformed to HTML),
 - [x] Draft/Hidden, see section
 - [x] Tags (call it Tags or cateories or whatever you like)
 - [x] RSS feed (Feed valid [FeedValidator](http://feedvalidator.org/))
@@ -24,20 +24,20 @@ Baker is full of features, more or less
 
 ## Usages
 
-Baker is CLI software. This means Command line Interface. Here are some the commands available.
+Baker is CLI software. This means Command Line Interface. Here are some commands available:
 
 - `./baker -h` : Give you the help. It's your best friend for running Baker.
 - `./baker -I` : Give you the configuration settings.
-- `./baker -p "title"` : Create the post with the `title` and open your default $EDITOR (or vi).
+- `./baker -p "title"` : Create the post with the `title` and open your default `$EDITOR` (or `vi`).
 - `./baker -l` : List all your posts with their states.
-- `./baker -b` : Bake all your posts with love.
+- `./baker -b` : Bake all your posts with love. Also include the content of the `PUBLIC_DIR` to your `OUTPUT_DIR`.
 - `./baker -e id` : Edit your post _id_.
 
 ## Enhance your site
 
 ### Templates
 
-Templates or Layout is a system where you build you page, include other pages, make statements, and Baker takes it all and build your site.
+Templates or Layout is a system where you build your pages, include other pages, make statements, and Baker takes it all and build your site.
 
 All template files **MUST** have the **`.md`** extension.
 
@@ -108,7 +108,7 @@ Variable identifier should only use `[A-Za-z_]`. Notice that any number is not a
 As you could see, Baker is able to understand directives. Those directives start with a `@` and MUST be the first element on a line.  
 Directives are :
 
-- `@include _file_` : Include part (only content) of a template file. You don't need to add the `.md`, it's added automatically. See example above.
+- `@include file` : Include part (only content) of a template file. You don't need to add the `.md`, it's added automatically. See example above.
 - `@if variable ... @end` : If the variable exists then the content of `@if ... @end` is added to the template. See example above.
 - `@if !variable ... @end` : If the variable doesn't exist (or is empty) then the content of `@if ... @end` is added to the template. Space is **not** allowed between `!` and the _variable_.
 - `@each variable ... @end` : _variable_ MUST be an array. Iterate on the content of the array. See example below.
@@ -131,7 +131,7 @@ myVar = [
 ]
 ```
 
-is encoded as:
+is (internally) encoded as:
 
 ```
 myVar_0_title=first
@@ -140,6 +140,8 @@ myVar_0_content=example1
 myVar_1_title=second
 myVar_1_content=example2
 ```
+
+and using the following template: 
 
 ```
 @each myVar
@@ -170,7 +172,7 @@ The headers in post indicate how Baker has to bake :
 
 * `title: `: The title of post in the index (and in the post). Also used to generate the filename. 
 * `date: `:  The date of the post in the form `2015-11-20T11:06:07Z` (Created by Baker when generating a new post).
-* `update: `: The date of the last update in the post (not automatique, same form as `date: `). Could be updated with `baker -u _id_`.
+* `update: `: The date of the last update in the post (not automatique, same form as `date: `). Could be updated with `baker -u id`.
 * `tags: `: The list of tags (comma separated) for the post.
 * `layout: `: The name of layout used to generate the post. The name should have not contain the `.md` at the end.
 * `draft: `: When cooking your post, Baker put your post in the `draft` directory if set to true, in `out` directory either.
@@ -188,7 +190,7 @@ Here are some variables you could change (in fact all could be changed, it will 
 * `DRAFT_DIR` : Where to store your compiled html draft files
 * `LAYOUT_DIR` : Where to store your layout markodown files
 * `PUBLIC_DIR`: Where to store your static content (css, images, js, ...)
-* `HIDDEN_DIR`: Where to store your hidden post (default is `OUTPUT_DIR`
+* `HIDDEN_DIR`: Where to store your hidden post (default is `OUTPUT_DIR`)
 
 * `SITE_NAME` : The site title
 * `SITE_DESC` : The site description
@@ -203,7 +205,7 @@ Here are some variables you could change (in fact all could be changed, it will 
 
 * `TAGS_BASELIST` : When creating a post this Tags list is automatically added
 * `TAGS_LINK`: The html (based on your layout) to generate tags list. `==tagNameSlugged==` will be replaced by the tag name slugged. `==tagName==` will be replaced by the tag name.
-* `TAGS_LAYOUT` : Use this particular Layout (instead of the default `index.md`) to generate `index\__tag_.html`.
+* `TAGS_LAYOUT` : Use this particular Layout (instead of the default `index.md`) to generate `index_tag.html`.
 * `RSS_SITE_URL` : Inform readers where to find your posts when they read the RSS Feed
 * `PRINT_ALL_SUMMARY`: Add the summary of your post inside your post. Use `none`, `all` or `user`. `all` and `none` override the `sumprint` header.
 * `EDITOR`: Use this editor to edit your post.
@@ -211,7 +213,12 @@ Here are some variables you could change (in fact all could be changed, it will 
 * `BAKER_TIMELINE_COMPARATOR`: Baker use this variable to compare date of post to set a new `<section>`.
 * `BAKER_TIMELINE_RENDERER`: Baker use this variable to render the test of new `<section>`.
 
-## Markdown
+### Draft & Hidden posts:
+
+* Draft posts : You don't have always time to terminate what you write. So, the default value of the header `draft: ` in each post is set to `true`. This means that when you bake all your posts, those kind of posts are generated in the `DRAFT_DIR`. It's only to avoid your unfinished publication to be readable by everyone. Drafted posts or not included in the indexes.
+* Hidden posts : You sometimes want to publish something that is relatively secret, the `hidden: ` header is here for that. The hidden posts are generated in the `OUTPUT_DIR` (by default, and could be override) and not indexed. If you need something more secure, you should select a dedicated directory with at least a per user/password access.
+
+### Markdown
 
 It currently uses the implementation from [Daring Fireball](http://daringfireball.net/projects/markdown/). As a consequence, `perl` is needed for `baker` to work.
 
